@@ -4,7 +4,21 @@ import { Plus, X, Loader2, Globe } from 'lucide-react';
 import { generateEpisode } from '../../../services/geminiService';
 
 const EPISODE_OPTIONS = [10, 20, 50, 100];
-const GENRE_OPTIONS: Genre[] = ['일상', '리얼', '캠퍼스', '오피스', '아포칼립스', '센티넬버스', '오메가버스', '빙의', '수인', 'TS'];
+const GENRE_OPTIONS: Genre[] = ['일상', '리얼물', '캠퍼스', '오피스', '오메가버스', '센티넬버스', 'TS', '빙의', '수인', '아포칼립스'];
+
+// [추가] 장르 표시용 다국어 매핑
+const GENRE_DISPLAY: Record<Genre, { kr: string; en: string }> = {
+  '일상': { kr: '일상', en: 'Slice of Life' },
+  '리얼물': { kr: '리얼물', en: 'Real Idol Life' },
+  '캠퍼스': { kr: '캠퍼스', en: 'Campus' },
+  '오피스': { kr: '오피스', en: 'Office' },
+  '오메가버스': { kr: '오메가버스', en: 'Omegaverse' },
+  '센티넬버스': { kr: '센티넬버스', en: 'Sentinelverse' },
+  'TS': { kr: 'TS', en: 'TS (Genderbend)' },
+  '빙의': { kr: '빙의', en: 'Possession' },
+  '수인': { kr: '수인', en: 'Shapeshifter' },
+  '아포칼립스': { kr: '아포칼립스', en: 'Apocalypse' },
+};
 
 interface Props {
   language: 'kr' | 'en';
@@ -107,7 +121,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
       setView(AppState.WRITING);
     } catch (e) { 
         console.error(e);
-        alert("집필 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요."); 
+        alert(language === 'kr' ? "집필 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요." : "An error occurred while writing. Please try again later."); 
     } finally { 
         setLoading(false); 
     }
@@ -124,8 +138,17 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
       <header className="text-center pt-8">
         <img src="/slplogo.png" alt="Logo" className="mx-auto w-full max-w-[350px] mb-4" />
         <div className="space-y-1 opacity-70 text-[10px] font-bold uppercase tracking-[0.2em]">
-          <p>마이너도 크오도 성실하게 글 써드립니다🤓☝️</p>
-          <p>원하는 인물과 장르를 입력하면 AI가 이야기를 완성합니다.</p>
+          {language === 'kr' ? (
+            <>
+                <p>마이너도 크오도 성실하게 글 써드립니다🤓☝️</p>
+                <p>원하는 인물과 장르를 입력하면 AI가 이야기를 완성합니다.</p>
+            </>
+          ) : (
+            <>
+                <p>We write anything, even rare pairs or crossovers! 🤓☝️</p>
+                <p>Enter your characters and genre, and AI will complete the story.</p>
+            </>
+          )}
         </div>
       </header>
 
@@ -139,14 +162,14 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
               type="text"
               value={leftGroupInput}
               onChange={(e) => setLeftGroupInput(e.target.value)}
-              placeholder={language === 'kr' ? "그룹명" : "Group Name"}
+              placeholder={language === 'kr' ? "그룹명 (예: 세븐틴)" : "Group Name (e.g. SVT)"}
               className={`w-full p-4 border ${borderClasses} rounded-8 text-sm bg-transparent focus:outline-none focus:ring-1 focus:ring-gray-400`}
             />
             <input 
               type="text"
               value={leftMemberInput}
               onChange={(e) => setLeftMemberInput(e.target.value)}
-              placeholder={language === 'kr' ? "이름" : "Member Name"}
+              placeholder={language === 'kr' ? "이름 (예: 민규)" : "Name (e.g. Mingyu)"}
               className={`w-full p-4 border ${borderClasses} rounded-8 text-sm bg-transparent focus:outline-none focus:ring-1 focus:ring-gray-400`}
             />
           </div>
@@ -156,18 +179,24 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-bold uppercase tracking-widest"><span className={`w-8 h-8 inline-flex rounded-full border ${borderClasses} items-center justify-center mr-2 text-xs font-bold`}>02</span>{language === 'kr' ? '오른쪽 멤버' : 'RIGHT MEMBER'}👉</h2>
-            <button onClick={() => setIsNafes(!isNafes)} className={`flex items-center gap-2 px-4 py-2 border ${borderClasses} rounded-full text-[10px] font-bold transition-all ${isNafes ? buttonActiveClasses : buttonHoverClasses}`}>🙋‍♀️ {language === 'kr' ? '저요저요' : 'NAFES'} {isNafes ? 'ON' : 'OFF'}</button>
+            <button onClick={() => setIsNafes(!isNafes)} className={`flex items-center gap-2 px-4 py-2 border ${borderClasses} rounded-full text-[10px] font-bold transition-all ${isNafes ? buttonActiveClasses : buttonHoverClasses}`}>
+                🙋‍♀️ {language === 'kr' ? '저요저요' : 'Y/N (Self-Insert)'} {isNafes ? 'ON' : 'OFF'}
+            </button>
           </div>
           
           {isNafes ? (
             <div className="animate-in slide-in-from-top-2 space-y-4">
               <div className={`p-6 border border-dashed ${borderClasses} rounded-8 bg-transparent`}>
-                <p className="text-xs font-bold mb-3 opacity-60 uppercase tracking-widest">이름 또는 애칭, 글에 녹이고 싶은 특징(나이, 성격, MBTI)들을 적어주세요</p>
+                <p className="text-xs font-bold mb-3 opacity-60 uppercase tracking-widest">
+                    {language === 'kr' 
+                        ? "이름 또는 애칭, 글에 녹이고 싶은 특징(나이, 성격, MBTI)들을 적어주세요" 
+                        : "Enter name/nickname and traits (Age, Personality, MBTI) you want to include"}
+                </p>
                 <input 
                   type="text" 
                   value={nafesName}
                   onChange={(e) => setNafesName(e.target.value)}
-                  placeholder="예: 여주 (털털함, 25세, ENFP)"
+                  placeholder={language === 'kr' ? "예: 여주 (털털함, 25세, ENFP)" : "e.g. Y/N (Cool, 25yo, ENFP)"}
                   className={`w-full p-4 border ${borderClasses} rounded-8 text-sm focus:outline-none bg-transparent`}
                 />
               </div>
@@ -178,14 +207,14 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
                   type="text"
                   value={rightGroupInput}
                   onChange={(e) => setRightGroupInput(e.target.value)}
-                  placeholder={language === 'kr' ? "그룹명" : "Group Name"}
+                  placeholder={language === 'kr' ? "그룹명 (예: 몬스타엑스)" : "Group Name (e.g. Monsta X)"}
                   className={`w-full p-4 border ${borderClasses} rounded-8 text-sm bg-transparent focus:outline-none focus:ring-1 focus:ring-gray-400`}
                 />
                 <input 
                   type="text"
                   value={rightMemberInput}
                   onChange={(e) => setRightMemberInput(e.target.value)}
-                  placeholder={language === 'kr' ? "이름" : "Member Name"}
+                  placeholder={language === 'kr' ? "이름 (예: 셔누)" : "Name (e.g. Shownu)"}
                   className={`w-full p-4 border ${borderClasses} rounded-8 text-sm bg-transparent focus:outline-none focus:ring-1 focus:ring-gray-400`}
                 />
             </div>
@@ -212,14 +241,14 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
                         type="text" 
                         value={tempExtraGroup} 
                         onChange={e => setTempExtraGroup(e.target.value)} 
-                        placeholder="그룹" 
+                        placeholder={language === 'kr' ? "그룹" : "Group"} 
                         className={`w-20 p-2 border ${borderClasses} rounded-8 text-xs bg-transparent`}
                     />
                     <input 
                         type="text" 
                         value={tempExtraName} 
                         onChange={e => setTempExtraName(e.target.value)} 
-                        placeholder="이름" 
+                        placeholder={language === 'kr' ? "이름" : "Name"} 
                         className={`w-20 p-2 border ${borderClasses} rounded-8 text-xs bg-transparent`}
                     />
                     <button onClick={handleAddExtra} className={`p-2 ${buttonActiveClasses} rounded-8 text-xs font-bold`}>OK</button>
@@ -235,7 +264,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
             <h2 className="text-sm font-bold uppercase tracking-widest"><span className={`w-8 h-8 inline-flex rounded-full border ${borderClasses} items-center justify-center mr-2 text-xs font-bold`}>03</span>{language === 'kr' ? '주제 및 소재 (썰)' : 'THEME & PROMPT'}</h2>
             
             <textarea 
-                placeholder="보고 싶은 상황, 대사, 분위기 등을 자유롭게 적어주세요." 
+                placeholder={language === 'kr' ? "보고 싶은 상황, 대사, 분위기 등을 자유롭게 적어주세요." : "Describe the situation, dialogue, or mood you want to see."}
                 className={`w-full h-32 border ${borderClasses} rounded-8 p-4 text-sm bg-transparent focus:outline-none focus:ring-1 focus:ring-gray-400`} 
                 value={themeInput} 
                 onChange={e => setThemeInput(e.target.value)} 
@@ -244,12 +273,12 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
             {/* 장르 선택 UI */}
             <div className="flex flex-col gap-3 pt-2">
                 <div className="flex flex-wrap items-center gap-2">
-                    {/* 선택된 장르 표시 */}
+                    {/* 선택된 장르 표시 (언어에 맞게 매핑) */}
                     <div className={`flex items-center gap-2 border ${borderClasses} px-3 py-1.5 text-xs font-bold rounded-full ${buttonActiveClasses}`}>
-                        #{selectedGenre}
+                        #{language === 'kr' ? GENRE_DISPLAY[selectedGenre].kr : GENRE_DISPLAY[selectedGenre].en}
                     </div>
 
-                    {/* 장르 변경 버튼 (네모 점선 스타일) */}
+                    {/* 장르 변경 버튼 */}
                     <button 
                         onClick={() => setIsSelectingGenre(!isSelectingGenre)} 
                         className={`px-4 py-2 border border-dashed ${borderClasses} rounded-8 flex items-center gap-2 text-xs font-bold hover:bg-gray-50 transition-all opacity-60 hover:opacity-100`}
@@ -267,7 +296,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
                                 onClick={() => { setSelectedGenre(genre); setIsSelectingGenre(false); }}
                                 className={`py-2 text-xs font-bold border ${borderClasses} rounded-8 transition-all ${selectedGenre === genre ? buttonActiveClasses : buttonHoverClasses}`}
                             >
-                                {genre}
+                                {language === 'kr' ? GENRE_DISPLAY[genre].kr : GENRE_DISPLAY[genre].en}
                             </button>
                         ))}
                     </div>
