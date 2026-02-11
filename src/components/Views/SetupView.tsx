@@ -196,7 +196,12 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
             ))}
             
             {!isAddingExtra ? (
-                <button onClick={() => setIsAddingExtra(true)} className={`w-9 h-9 rounded-full border ${borderClasses} border-dashed flex items-center justify-center hover:bg-gray-50 transition-all`}><Plus size={18} /></button>
+                <button 
+                  onClick={() => setIsAddingExtra(true)} 
+                  className={`px-4 py-3 border border-dashed ${borderClasses} rounded-8 flex items-center gap-2 text-xs font-bold hover:bg-gray-50 transition-all opacity-60 hover:opacity-100`}
+                >
+                    <Plus size={14} /> {language === 'kr' ? '등장인물 추가' : 'Add Character'}
+                </button>
             ) : (
                 <div className="flex items-center gap-2 animate-in fade-in">
                     <input 
@@ -221,34 +226,55 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
         </div>
 
         {/* 03: 장르 선택 */}
-        <div className="space-y-4">
-            <h2 className="text-sm font-bold uppercase tracking-widest"><span className={`w-8 h-8 inline-flex rounded-full border ${borderClasses} items-center justify-center mr-2 text-xs font-bold`}>03</span>{language === 'kr' ? '장르 선택' : 'GENRE'}</h2>
-            <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
-                {GENRE_OPTIONS.map(genre => (
-                    <button 
-                        key={genre}
-                        onClick={() => setSelectedGenre(genre)}
-                        className={`py-3 text-xs font-bold border ${borderClasses} rounded-8 transition-all ${selectedGenre === genre ? buttonActiveClasses : buttonHoverClasses}`}
-                    >
-                        {genre}
-                    </button>
-                ))}
-            </div>
-        </div>
-
-        {/* 04 & 05: 소재 및 분량 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6">
           <div className="space-y-4">
-            <h2 className="text-sm font-bold uppercase tracking-widest"><span className={`w-8 h-8 inline-flex rounded-full border ${borderClasses} items-center justify-center mr-2 text-xs font-bold`}>04</span>{language === 'kr' ? '주제 및 소재 (썰)' : 'THEME & PROMPT'}</h2>
+            <h2 className="text-sm font-bold uppercase tracking-widest"><span className={`w-8 h-8 inline-flex rounded-full border ${borderClasses} items-center justify-center mr-2 text-xs font-bold`}>03</span>{language === 'kr' ? '주제 및 소재 (썰)' : 'THEME & PROMPT'}</h2>
+            
             <textarea 
                 placeholder="보고 싶은 상황, 대사, 분위기 등을 자유롭게 적어주세요." 
                 className={`w-full h-32 border ${borderClasses} rounded-8 p-4 text-sm bg-transparent focus:outline-none focus:ring-1 focus:ring-gray-400`} 
                 value={themeInput} 
                 onChange={e => setThemeInput(e.target.value)} 
             />
+
+            {/* 장르 선택 UI (네모 점선 스타일 적용) */}
+            <div className="flex flex-col gap-3 pt-2">
+                <div className="flex flex-wrap items-center gap-2">
+                    {/* 선택된 장르 태그 */}
+                    <div className={`flex items-center gap-2 border ${borderClasses} px-3 py-1.5 text-xs font-bold rounded-full ${buttonActiveClasses}`}>
+                        #{selectedGenre}
+                    </div>
+
+                    {/* 장르 추가 버튼 (네모 점선 스타일) */}
+                    <button 
+                        onClick={() => setIsSelectingGenre(!isSelectingGenre)} 
+                        className={`px-4 py-2 border border-dashed ${borderClasses} rounded-8 flex items-center gap-2 text-xs font-bold hover:bg-gray-50 transition-all opacity-60 hover:opacity-100`}
+                    >
+                        <Plus size={14} /> {language === 'kr' ? '장르 변경' : 'Change Genre'}
+                    </button>
+                </div>
+
+                {/* 장르 목록 (토글됨) */}
+                {isSelectingGenre && (
+                    <div className={`grid grid-cols-3 md:grid-cols-5 gap-2 animate-in fade-in slide-in-from-top-2 p-4 border border-dashed ${borderClasses} rounded-8`}>
+                        {GENRE_OPTIONS.map(genre => (
+                            <button 
+                                key={genre}
+                                onClick={() => { setSelectedGenre(genre); setIsSelectingGenre(false); }}
+                                className={`py-2 text-xs font-bold border ${borderClasses} rounded-8 transition-all ${selectedGenre === genre ? buttonActiveClasses : buttonHoverClasses}`}
+                            >
+                                {genre}
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
+
           </div>
+
+          {/* 04: 연재 분량 */}
           <div className="space-y-4">
-            <h2 className="text-sm font-bold uppercase tracking-widest"><span className={`w-8 h-8 inline-flex rounded-full border ${borderClasses} items-center justify-center mr-2 text-xs font-bold`}>05</span>{language === 'kr' ? '연재 분량' : 'LENGTH'}</h2>
+            <h2 className="text-sm font-bold uppercase tracking-widest"><span className={`w-8 h-8 inline-flex rounded-full border ${borderClasses} items-center justify-center mr-2 text-xs font-bold`}>04</span>{language === 'kr' ? '연재 분량' : 'LENGTH'}</h2>
             <div className="grid grid-cols-2 gap-2">
               {EPISODE_OPTIONS.map(opt => (
                 <button key={opt} disabled={opt > 20} onClick={() => setEpisodeLimit(opt)} className={`py-3 text-xs font-bold border ${borderClasses} rounded-8 ${opt > 20 ? 'opacity-40 cursor-not-allowed' : episodeLimit === opt ? buttonActiveClasses : buttonHoverClasses}`}>
