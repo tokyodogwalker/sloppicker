@@ -87,7 +87,7 @@ const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, 
             <ArrowLeft size={18} />
           </button>
           
-          {/* [수정됨] 제목이 길 경우 Gradient Fade 처리 */}
+          {/* 제목이 길 경우 Gradient Fade 처리 */}
           <div className="flex flex-col overflow-hidden">
             <h1 className="text-sm font-bold truncate pr-4 relative [mask-image:linear-gradient(to_right,black_85%,transparent_100%)]">
                 {currentStory.title}
@@ -171,7 +171,9 @@ const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, 
                         value={userInput}
                         onChange={(e) => setUserInput(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && userInput && handleNextEpisode(userInput)}
-                        placeholder="직접 행동을 입력하거나 대사를 쳐보세요..."
+                        placeholder={language === 'kr' 
+                          ? "다음 상황으로 보고 싶은 장면, 대사, 분위기 등을 자유롭게 적어주세요" 
+                          : "Describe the scene, dialogue, or mood you want to see next..."}
                         className={`flex-1 p-4 pr-12 rounded-full border ${borderClasses} bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-gray-400`}
                     />
                     <button 

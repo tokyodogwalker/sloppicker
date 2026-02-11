@@ -44,7 +44,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
   
   // 3. 나페스 모드 상태
   const [isNafes, setIsNafes] = useState(false);
-  const [nafesName, setNafesName] = useState('여주');
+  const [nafesName, setNafesName] = useState('');
   
   // 4. 등장인물 추가 상태
   const [extraMembers, setExtraMembers] = useState<ExtraCharacter[]>([]);
@@ -75,7 +75,8 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
     if (!leftGroupInput || !leftMemberInput || !themeInput) return;
     if (!isNafes && (!rightGroupInput || !rightMemberInput)) return;
 
-    const finalRightMember = isNafes ? nafesName : rightMemberInput;
+    const defaultName = language === 'kr' ? '여주' : 'Y/N';
+    const finalRightMember = isNafes ? (nafesName || defaultName) : rightMemberInput;
     
     setLoading(true);
     try {
@@ -219,7 +220,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
                   type="text"
                   value={rightMemberInput}
                   onChange={(e) => setRightMemberInput(e.target.value)}
-                  placeholder={language === 'kr' ? "이름" : "Name (e.g. Shownu)"}
+                  placeholder={language === 'kr' ? "이름" : "Name"}
                   className={`w-full p-4 border ${borderClasses} rounded-8 text-sm bg-transparent focus:outline-none focus:ring-1 focus:ring-gray-400`}
                 />
             </div>
