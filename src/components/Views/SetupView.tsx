@@ -6,7 +6,7 @@ import { Plus, X, Loader2, Globe } from 'lucide-react';
 import { generateEpisode } from '../../../services/geminiService';
 
 const EPISODE_OPTIONS = [10, 20, 50, 100];
-const GENRE_OPTIONS: Genre[] = ['일상', '리얼물', '캠퍼스', '오피스', '오메가버스', '센티넬버스', '후회', '빙의', '수인', '아포칼립스'];
+const GENRE_OPTIONS: Genre[] = ['일상', '리얼', '캠퍼스', '오피스', '아포칼립스', '센티넬버스', '오메가버스', '빙의', '수인', 'TS'];
 
 interface Props {
   language: 'kr' | 'en';
@@ -116,7 +116,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
       </div>
 
       <header className="text-center pt-8">
-        <img src="/slplogo.png" alt="Logo" className="mx-auto w-full max-w-[250px] mb-4" />
+        <img src="/slplogo.png" alt="Logo" className="mx-auto w-full max-w-[350px] mb-4" />
         <div className="space-y-1 opacity-70 text-[10px] font-bold uppercase tracking-[0.2em]">
           <p>마이너도 크오도 성실하게 글 써드립니다🤓☝️</p>
           <p>원하는 인물과 장르를 입력하면 AI가 이야기를 완성합니다.</p>
@@ -133,14 +133,14 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
               type="text"
               value={leftGroupInput}
               onChange={(e) => setLeftGroupInput(e.target.value)}
-              placeholder={language === 'kr' ? "그룹명 (예: 세븐틴)" : "Group Name"}
+              placeholder={language === 'kr' ? "그룹명" : "Group Name"}
               className={`w-full p-4 border ${borderClasses} rounded-8 text-sm bg-transparent focus:outline-none focus:ring-1 focus:ring-gray-400`}
             />
             <input 
               type="text"
               value={leftMemberInput}
               onChange={(e) => setLeftMemberInput(e.target.value)}
-              placeholder={language === 'kr' ? "이름 (예: 민규)" : "Member Name"}
+              placeholder={language === 'kr' ? "이름" : "Member Name"}
               className={`w-full p-4 border ${borderClasses} rounded-8 text-sm bg-transparent focus:outline-none focus:ring-1 focus:ring-gray-400`}
             />
           </div>
@@ -174,14 +174,14 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
                   type="text"
                   value={rightGroupInput}
                   onChange={(e) => setRightGroupInput(e.target.value)}
-                  placeholder={language === 'kr' ? "그룹명 (예: 몬스타엑스)" : "Group Name"}
+                  placeholder={language === 'kr' ? "그룹명" : "Group Name"}
                   className={`w-full p-4 border ${borderClasses} rounded-8 text-sm bg-transparent focus:outline-none focus:ring-1 focus:ring-gray-400`}
                 />
                 <input 
                   type="text"
                   value={rightMemberInput}
                   onChange={(e) => setRightMemberInput(e.target.value)}
-                  placeholder={language === 'kr' ? "이름 (예: 셔누)" : "Member Name"}
+                  placeholder={language === 'kr' ? "이름" : "Member Name"}
                   className={`w-full p-4 border ${borderClasses} rounded-8 text-sm bg-transparent focus:outline-none focus:ring-1 focus:ring-gray-400`}
                 />
             </div>

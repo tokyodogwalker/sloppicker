@@ -2,8 +2,6 @@
 import React, { useState } from 'react';
 import { AppState } from './types';
 import { useAppConfig } from './src/hooks/useAppConfig';
-// [수정됨] useIdolData import 제거
-// import { useIdolData } from './src/hooks/useIdolData'; 
 import { useStoryManager } from './src/hooks/useStoryManager';
 import SetupView from './src/components/Views/SetupView';
 import WritingView from './src/components/Views/WritingView';
@@ -12,8 +10,6 @@ import { ArrowUp, MessageSquare } from 'lucide-react';
 
 const App: React.FC = () => {
   const { theme, setTheme, language, setLanguage } = useAppConfig();
-  // [수정됨] kpopGroups 데이터 로드 로직 제거
-  // const { kpopGroups } = useIdolData(language);
   
   const { stories, currentStory, setCurrentStory, loading, setLoading, saveToLibrary, deleteFromLibrary } = useStoryManager();
   const [view, setView] = useState<AppState>(AppState.SETUP);
@@ -27,7 +23,6 @@ const App: React.FC = () => {
       <main className="flex-1">
         {view === AppState.SETUP && (
             <SetupView 
-                // [수정됨] kpopGroups prop 전달 삭제
                 language={language} 
                 setLanguage={setLanguage} 
                 theme={theme} 

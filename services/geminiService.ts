@@ -2,14 +2,11 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Story } from "@/types";
 
-// [수정됨] supabase import 삭제
-// import { supabase } from "@/src/lib/supabase"; 
-
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const ai = new GoogleGenAI({ apiKey: API_KEY || "" });
 
 /**
- * [수정됨] 장르별 특수 프롬프트 정의
+ * 장르별 특수 프롬프트 정의
  */
 const GENRE_PROMPTS: Record<string, string> = {
   '일상': "Focus on realistic, slice-of-life details, cafes, practice rooms, and subtle emotional shifts. Create a cozy and natural atmosphere.",
@@ -18,7 +15,7 @@ const GENRE_PROMPTS: Record<string, string> = {
   '오피스': "Company hierarchy setting. Focus on meeting rooms, overtime work, business trips, and secret office romance tension.",
   '오메가버스': "Apply Omegaverse rules (Alpha/Beta/Omega, Pheromones, Heat/Rut cycles). Focus on instinct vs. reason and biological tension.",
   '센티넬버스': "Sentinel/Guide universe. Focus on Guiding, bonding, sensory overload, and the urgency of battles or missions.",
-  '후회': "Focus on misunderstanding, angst, groveling, cold treatment, and intense emotional pain followed by redemption.",
+  'TS': "TS (Genderbend AU). An alternate universe where the character is born as the opposite gender. No physical transformation. Focus on the natural tension, distinctive social dynamics, and the reimagined relationship chemistry driven by this gender swap.",
   '빙의': "One character possesses another body or realizes they are inside a fiction/game. Focus on confusion and adaptation.",
   '수인': "Characters have animal traits (ears, tail) or transformation abilities. Focus on animalistic instincts and behaviors.",
   '아포칼립스': "Zombie or disaster survival setting. Focus on scarcity, trust issues, danger, and survival romance in a ruined world."
@@ -31,10 +28,9 @@ export const generateEpisode = async (
 ): Promise<{ content: string; suggestions: string[]; storyTitle?: string }> => {
   const isFirstEpisode = currentEpisodeNum === 1;
 
-  // [수정됨] DB 호출 제거 및 하드코딩된 가이드라인 사용
-  // Supabase에 의존하지 않고 코드 내에 가이드라인을 명시하여 독립성 확보
+  // DB 호출 제거 및 하드코딩된 가이드라인 사용
   const baseGuidelines = `
-    You are PIKFIC, a top-tier K-pop fanfiction writer renowned for deep emotional insight and vivid sensory descriptions.
+    You are Sloppicker, a top-tier K-pop fanfiction writer renowned for deep emotional insight and vivid sensory descriptions.
     
     [WRITING RULES]
    1. EXTENSIVE LENGTH: 2500-3000 Korean characters. Ensure the narrative is immersive and detailed.
@@ -46,7 +42,7 @@ export const generateEpisode = async (
    7. FORMATTING: Use double newline characters (\\n\\n) for paragraph breaks. No HTML.
   `;
 
-  // [수정됨] 장르 및 캐릭터 컨텍스트 생성 로직 변경
+  // 장르 및 캐릭터 컨텍스트 생성 로직 변경
   const selectedGenreInstruction = GENRE_PROMPTS[story.genre] || "General Fiction";
   
   const rightCharacterDesc = story.isNafes 
