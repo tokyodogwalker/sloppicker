@@ -1,0 +1,20 @@
+# 의존성 모듈 (용량 큼, 자동 설치 가능)
+node_modules/
+
+# 환경 변수 (비밀번호, API 키 등 보안 정보)
+.env
+.env.local
+.env.*
+
+# 빌드 결과물 (자동 생성됨)
+dist/
+build/
+
+# 로그 파일들
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS 생성 파일 (맥, 윈도우 등)
+.DS_Store
+Thumbs.db

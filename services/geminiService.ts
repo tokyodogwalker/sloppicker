@@ -1,37 +1,28 @@
+// services/geminiService.ts
 import { GoogleGenAI, Type } from "@google/genai";
-import { Story, Episode } from "@/types";
-import { supabase } from "@/src/lib/supabase";
+import { Story } from "@/types";
+
+// [수정됨] supabase import 삭제
+// import { supabase } from "@/src/lib/supabase"; 
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const ai = new GoogleGenAI({ apiKey: API_KEY || "" });
 
 /**
- * RAG: 멤버별 상세 지식 및 고유 에피소드를 검색합니다.
+ * [수정됨] 장르별 특수 프롬프트 정의
  */
-/*
-const fetchMemberKnowledge = async (memberNames: string[]) => {
-  try {
-    const { data: members } = await supabase
-      .from('idol_members')
-      .select('id')
-      .in('name_kr', memberNames);
-    
-    if (!members || members.length === 0) return "";
-
-    const { data: knowledge } = await supabase
-      .from('member_knowledge')
-      .select('content')
-      .in('member_id', members.map(m => m.id))
-      .limit(5);
-
-    return knowledge?.map(k => k.content).join("\n") || "";
-  } catch (error) {
-    console.error("RAG Fetch Error:", error);
-    return "";
-  }
+const GENRE_PROMPTS: Record<string, string> = {
+  '일상': "Focus on realistic, slice-of-life details, cafes, practice rooms, and subtle emotional shifts. Create a cozy and natural atmosphere.",
+  '리얼물': "Based on the actual idol industry reality. Incorporate schedules, dorm life, waiting rooms, and stage behind-the-scenes dynamics.",
+  '캠퍼스': "University setting. Focus on majors, sunbae-hubae dynamics, campus festivals, library encounters, and drinking parties.",
+  '오피스': "Company hierarchy setting. Focus on meeting rooms, overtime work, business trips, and secret office romance tension.",
+  '오메가버스': "Apply Omegaverse rules (Alpha/Beta/Omega, Pheromones, Heat/Rut cycles). Focus on instinct vs. reason and biological tension.",
+  '센티넬버스': "Sentinel/Guide universe. Focus on Guiding, bonding, sensory overload, and the urgency of battles or missions.",
+  '후회': "Focus on misunderstanding, angst, groveling, cold treatment, and intense emotional pain followed by redemption.",
+  '빙의': "One character possesses another body or realizes they are inside a fiction/game. Focus on confusion and adaptation.",
+  '수인': "Characters have animal traits (ears, tail) or transformation abilities. Focus on animalistic instincts and behaviors.",
+  '아포칼립스': "Zombie or disaster survival setting. Focus on scarcity, trust issues, danger, and survival romance in a ruined world."
 };
-*/
-
 
 export const generateEpisode = async (
   story: Story,
@@ -40,74 +31,59 @@ export const generateEpisode = async (
 ): Promise<{ content: string; suggestions: string[]; storyTitle?: string }> => {
   const isFirstEpisode = currentEpisodeNum === 1;
 
-  // 1. DB에서 가이드라인 가져오기
-  const { data: config } = await supabase
-    .from('app_config')
-    .select('config_value')
-    .eq('config_key', 'writing_guidelines')
-    .single();
-
-  // 2. DB 실패 시 사용할 실제 가이드라인 전문 (백업)
-  const fallbackGuidelines = `
-    You are PIKFIC, a highly creative and popular K-pop fanfiction writer.
+  // [수정됨] DB 호출 제거 및 하드코딩된 가이드라인 사용
+  // Supabase에 의존하지 않고 코드 내에 가이드라인을 명시하여 독립성 확보
+  const baseGuidelines = `
+    You are PIKFIC, a top-tier K-pop fanfiction writer renowned for deep emotional insight and vivid sensory descriptions.
     
     [WRITING RULES]
-   1. EXTENSIVE LENGTH: 2500-3000 Korean characters. (Secure sufficient length to ensure the narrative flow remains uninterrupted.)
-   2. SHOW, DON'T TELL (ABSOLUTE): Do not describe a character's personality directly. Mentioning specific profile data (Height, Nationality, MBTI, Hometown, Official Position) in the narrative is considered a TECHNICAL WRITING FAILURE. Instead of writing "He has a calm personality," describe his steady hands as he quietly sets down a teacup in a tense situation. Make the reader 'see' the scene rather than just reading information. 
-   3. EMOTIONAL SUBTEXT: Focus on the 'subtext'—the silence between lines, the shifting gaze, or the slight tremor of a finger—rather than just the dialogue. The fluttering heart (Butterflies) stems from the tension of a 'near-touching' distance, not from direct confessions.
-   4. ORGANIC PERSONA INTEGRATION (SECRET DOSSIER): The provided character data (Traits, Background) is a "Secret Dossier" for your internal reference only. NEVER reveal these specific keywords, numbers, or facts in the story. Simply listing information is strictly prohibited. Use this data ONLY as internal logic to shape the character's actions and speech patterns, so that fans will think, "If it were really them, they would have acted exactly like this in this situation."
-   5. NEXT STEPS (IMPORTANT!!): At the very end, provide exactly 3 diverse plot suggestions for the next chapter.
-   6. RELATIONSHIP & ADDRESS CONSISTENCY:
-    - Do not address the other person by their name or title in every sentence. Take advantage of the nuances of the Korean language; if the target of the dialogue is clear from the context, omit titles and write the lines naturally to mimic real conversation.
-    - Peer & Same-age relations: If members are the same age or the seniority is unclear, avoid titles like 'Hyung' or 'Sunbae.' Address them by name and use natural informal speech.
-    - Hierarchy Accuracy: Use titles like Hyung/Noona/Unnie/Oppa/Sunbaenim only when age differences or debut years are verified. If unknown, do not invent titles; use names and the speech style established in Chapter 1.
-    - Do not arbitrarily create 'Sunbae' or 'Hubae' titles if the relationship is unknown.
-   7. RELATIONSHIP & ADDRESS EVOLUTION: Maintain the settings from Chapter 1 as the foundation. Allow natural transitions, such as moving to informal speech or using nicknames, only as the relationship deepens through the narrative. However, once a level of intimacy is established, do not regress to formal speech without a specific narrative reason.
-   8. NARRATIVE CONTINUITY: Treat every detail, setting, and emotional development from previous chapters as absolute facts. Do not contradict past events. Ensure the story flows as one seamless, long-form novel.
-   9. FORMATTING: Use double newline characters (\n\n) for paragraph breaks. Strictly prohibited from using HTML tags such as <br> or <p>. Ensure all line breaks are plain text newlines.
-    `;
+   1. EXTENSIVE LENGTH: 2500-3000 Korean characters. Ensure the narrative is immersive and detailed.
+   2. SHOW, DON'T TELL: Do not describe personalities directly. Show them through actions, hesitation, and small habits.
+   3. NO EXTERNAL DB: Rely solely on the provided names and group names to simulate their persona based on your own knowledge of K-pop idols. If the person is unknown, infer a persona based on the genre context.
+   4. GENRE FAITHFULNESS: Strictly adhere to the rules of the selected genre.
+   5. NEXT STEPS: Provide exactly 3 diverse plot suggestions for the next chapter.
+   6. NATURAL DIALOGUE: Use Korean nuances perfectly. Do not overuse titles/honorifics if they are close.
+   7. FORMATTING: Use double newline characters (\\n\\n) for paragraph breaks. No HTML.
+  `;
 
-  const baseGuidelines = config?.config_value || fallbackGuidelines;
+  // [수정됨] 장르 및 캐릭터 컨텍스트 생성 로직 변경
+  const selectedGenreInstruction = GENRE_PROMPTS[story.genre] || "General Fiction";
+  
+  const rightCharacterDesc = story.isNafes 
+    ? `'${story.rightMember}' (The Protagonist/User, often referred to as 'You' or 'Yeoju').`
+    : `'${story.rightMember}' (Idol from ${story.rightGroup}).`;
 
-  // 3. RAG 데이터 및 인물 컨텍스트 준비
-  /*
-  const ragKnowledge = await fetchMemberKnowledge([story.leftMember, story.rightMember]);
- */
-
-  const characterContext = story.isNafes 
-    ? `The character '${story.rightMember}' is a self-insert representation of the user (나페스). The story must focus exclusively on the interaction between '${story.leftMember}' and '${story.rightMember}'.`
-    : `The main relationship is between ${story.leftMember} and ${story.rightMember}.`;
+  const extraMembersContext = story.extraMembers.length > 0
+    ? `Supporting Characters: ${story.extraMembers.map(e => `${e.name} (${e.groupName})`).join(', ')}`
+    : "No major supporting characters yet.";
 
   const systemInstruction = `
     ${baseGuidelines}
-    
-    [CHARACTER PROFILE GUIDELINES - REFERENCE ONLY]
-    - BACKGROUND: Use this as the foundational context for the character's life and history. It should inform their current situation and overall 'vibe' in the story.
-    - TRAITS: Refer only to **strictly necessary** elements that are essential to the specific scene. Do not feel obligated to include every trait. Use them as a very subtle reference only when they naturally enhance the narrative atmosphere.
-    
-    [CHARACTER DATA]
-    - ${story.leftMember}: ${story.leftMemberContext || 'No data'}
-    - ${story.rightMember}: ${story.rightMemberContext || 'No data'}
 
-    [STORY PROFILE]
-    - Involved Groups: ${story.groupName}
-    - Genre/Theme: ${story.theme}
-    - Language: ${story.language === 'en' ? 'English' : 'Korean'}
+    [STORY SETTINGS]
+    - Genre: ${story.genre} (${selectedGenreInstruction})
+    - Main Characters: 
+      1. ${story.leftMember} (Group: ${story.leftGroup})
+      2. ${rightCharacterDesc}
+    - ${extraMembersContext}
+    - Theme/Prompt (Ssul): "${story.theme}"
     - Current Episode: ${currentEpisodeNum} / ${story.totalEpisodes}
-    ${isFirstEpisode ? "\n[SPECIAL] generate a poetic title '[Member X Member] Title'." : ""}
+    - Language: ${story.language === 'en' ? 'English' : 'Korean'}
+
+    ${isFirstEpisode ? "\n[SPECIAL TASK] Generate a poetic and captivating title for this story based on the theme in the JSON response." : ""}
   `;
 
-  // 이전 컨텍스트 요약 유지
   const previousContext = story.episodes
     .map((ep) => `[Chapter ${ep.episodeNumber}]\n${ep.content.substring(Math.max(0, ep.content.length - 2000))}`)
     .join("\n\n");
 
   const prompt = isFirstEpisode
-    ? `Create the first episode based on: "${userInput}".`
-    : `Continuing the narrative from:
+    ? `Write the First Episode based on the theme: "${userInput}".`
+    : `Previous Story Context:
       ${previousContext}
       
-      User chose: "${userInput}". Write the ${currentEpisodeNum}th episode.`;
+      User's Choice/Action for this turn: "${userInput}". 
+      Write the ${currentEpisodeNum}th episode following the genre '${story.genre}'.`;
 
   try {
     const response = await ai.models.generateContent({
@@ -117,7 +93,7 @@ export const generateEpisode = async (
         systemInstruction,
         responseMimeType: "application/json",
         maxOutputTokens: 8192,
-        temperature: 0.85, // 문학적 창의성을 위해 약간 높임
+        temperature: 0.8, // 창의성
         responseSchema: {
           type: Type.OBJECT,
           properties: {

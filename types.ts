@@ -1,49 +1,18 @@
-/**
- * Supabase DB: app_config 테이블 대응
- */
-export interface AppConfig {
-  config_key: string;   // primary key (예: 'writing_guidelines')
-  config_value: string;
-  category: string;
-  updated_at: string;
-}
+// types.ts
 
 /**
- * Supabase DB: idol_members 테이블 대응
- * 글로벌 서비스를 위해 다국어 이름 및 고증 데이터(background, traits) 포함
+ * [수정됨] 장르 타입 정의 추가
+ * 사용자가 선택할 수 있는 10가지 장르
  */
-export interface IdolMember {
-  id: string; // uuid
-  name_kr: string;
-  name_en: string;
-  name_cn: string;
-  name_jp: string;
-  name_alias?: string;
-  personal_background?: string;
-  personal_traits?: string;
-  image?: string; // 기존 UI 호환용
-}
+export type Genre = '일상' | '리얼물' | '캠퍼스' | '오피스' | '오메가버스' | '센티넬버스' | '후회' | '빙의' | '수인' | '아포칼립스';
 
 /**
- * Supabase DB: idol_groups 테이블 대응
+ * [수정됨] 등장인물(엑스트라) 타입 정의
+ * DB 객체 대신 단순 문자열(그룹명, 이름)로 관리
  */
-export interface IdolGroup {
-  id: string; // uuid
-  group_name: string;
-  group_name_en: string;
-  group_context?: string;
-  created_at?: string;
-  members: IdolMember[]; // member_group_map을 통해 조인된 결과
-}
-
-/**
- * Supabase DB: member_knowledge 테이블 대응 (RAG용)
- */
-export interface MemberKnowledge {
-  id: string;
-  member_id: string;
-  content: string;
-  embedding?: number[]; // vector(1536 등)
+export interface ExtraCharacter {
+  groupName: string;
+  name: string;
 }
 
 export interface Episode {
@@ -54,29 +23,40 @@ export interface Episode {
 }
 
 /**
- * Story 인터페이스 확장
- * AI에게 전달할 인물별 고증 컨텍스트 필드 추가
+ * [수정됨] Story 인터페이스 업데이트
+ * - DB ID 기반 참조 제거 -> 직접 입력한 문자열(leftGroup, leftMember 등) 사용
+ * - genre 필드 추가
  */
 export interface Story {
   id: string;
   title: string;
-  groupName: string;
-  leftMember: string;
-  rightMember: string;
   
-  // RAG 및 고증 강화를 위한 컨텍스트 주입 필드
-  leftMemberContext?: string;  // 왼쪽 멤버의 traits + background
-  rightMemberContext?: string; // 오른쪽 멤버의 traits + background
-  ragKnowledge?: string;       // member_knowledge에서 검색된 추가 정보
+  // 주요 설정
+  genre: Genre;           // [추가] 장르
+  theme: string;          // 주제/소재 (프롬프트)
   
+  // 왼쪽 멤버 (주인공 1)
+  leftGroup: string;      // [추가] 왼쪽 멤버 그룹명
+  leftMember: string;     // 왼쪽 멤버 이름
+  
+  // 오른쪽 멤버 (주인공 2)
+  rightGroup?: string;    // [추가] 오른쪽 멤버 그룹명 (나페스 아닐 경우)
+  rightMember: string;    // 오른쪽 멤버 이름 (나페스일 경우 사용자 이름)
+  
+  // 나페스 여부
   isNafes?: boolean;
   nafesName?: string;
-  theme: string;
+  
+  // 엑스트라
+  extraMembers: ExtraCharacter[]; // [추가] 엑스트라 목록
+
+  // 메타 데이터
+  groupName: string;      // 표시용 통합 그룹명 (예: "세븐틴, 아이브")
   totalEpisodes: number;
   episodes: Episode[];
   isCompleted: boolean;
   createdAt: number;
-  language?: 'kr' | 'en' | 'jp' | 'cn'; // 글로벌 서비스 타겟 언어
+  language?: 'kr' | 'en'; 
 }
 
 export enum AppState {
