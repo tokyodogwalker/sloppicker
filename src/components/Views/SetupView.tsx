@@ -122,7 +122,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
       </div>
 
       <header className="text-center pt-8">
-        <img src="/pikficlogo.png" alt="Logo" className="mx-auto w-full max-w-[250px] mb-4" />
+        <img src="/slplogo.png" alt="Logo" className="mx-auto w-full max-w-[350px] mb-4" />
         <div className="space-y-1 opacity-70 text-[10px] font-bold uppercase tracking-[0.2em]">
           <p>마이너도 크오도 성실하게 글 써드립니다🤓☝️</p>
           <p>원하는 인물과 장르를 입력하면 AI가 이야기를 완성합니다.</p>
