@@ -1,15 +1,14 @@
 // src/components/Views/SetupView.tsx
+
 import React, { useState } from 'react';
 import { Story, AppState, Genre, ExtraCharacter } from '../../../types';
 import { Plus, X, Loader2, Globe } from 'lucide-react';
 import { generateEpisode } from '../../../services/geminiService';
 
 const EPISODE_OPTIONS = [10, 20, 50, 100];
-// [수정됨] 장르 옵션 상수 추가
 const GENRE_OPTIONS: Genre[] = ['일상', '리얼물', '캠퍼스', '오피스', '오메가버스', '센티넬버스', '후회', '빙의', '수인', '아포칼립스'];
 
 interface Props {
-  // [수정됨] kpopGroups prop 제거 (DB 연결 끊음)
   language: 'kr' | 'en';
   setLanguage: (l: 'kr' | 'en') => void;
   theme: string;
@@ -23,7 +22,7 @@ interface Props {
 }
 
 const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading, setCurrentStory, setView, borderClasses, buttonActiveClasses, buttonHoverClasses }) => {
-  // [수정됨] 직접 입력을 위한 상태값들
+  // 입력 상태값
   const [leftGroupInput, setLeftGroupInput] = useState('');
   const [leftMemberInput, setLeftMemberInput] = useState('');
   
@@ -33,19 +32,16 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
   const [isNafes, setIsNafes] = useState(false);
   const [nafesName, setNafesName] = useState('여주');
   
-  // [수정됨] 엑스트라 직접 입력 상태
   const [extraMembers, setExtraMembers] = useState<ExtraCharacter[]>([]);
   const [isAddingExtra, setIsAddingExtra] = useState(false);
   const [tempExtraGroup, setTempExtraGroup] = useState('');
   const [tempExtraName, setTempExtraName] = useState('');
   
-  // [수정됨] 장르 선택 상태
   const [selectedGenre, setSelectedGenre] = useState<Genre>('일상');
   
   const [themeInput, setThemeInput] = useState('');
   const [episodeLimit, setEpisodeLimit] = useState(10);
 
-  // [수정됨] 엑스트라 추가 핸들러
   const handleAddExtra = () => {
     if (tempExtraGroup && tempExtraName) {
       setExtraMembers([...extraMembers, { groupName: tempExtraGroup, name: tempExtraName }]);
@@ -55,9 +51,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
     }
   };
 
-  // [수정됨] 시작 핸들러 업데이트
   const handleStart = async () => {
-    // 필수 입력값 검증
     if (!leftGroupInput || !leftMemberInput || !themeInput) return;
     if (!isNafes && (!rightGroupInput || !rightMemberInput)) return;
 
@@ -69,7 +63,6 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
         id: Date.now().toString(),
         title: `[${leftMemberInput} X ${finalRightMember}] ${selectedGenre}물`,
         
-        // [수정됨] 직접 입력된 값 매핑
         genre: selectedGenre,
         theme: themeInput,
         
@@ -83,7 +76,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
         nafesName: isNafes ? nafesName : undefined,
         
         extraMembers: extraMembers,
-        groupName: leftGroupInput, // 대표 그룹명
+        groupName: leftGroupInput, 
         
         totalEpisodes: episodeLimit,
         episodes: [],
@@ -123,7 +116,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
       </div>
 
       <header className="text-center pt-8">
-        <img src="/pikficlogo.png" alt="Logo" className="mx-auto w-full max-w-[250px] mb-4" />
+        <img src="/slplogo.png" alt="Logo" className="mx-auto w-full max-w-[250px] mb-4" />
         <div className="space-y-1 opacity-70 text-[10px] font-bold uppercase tracking-[0.2em]">
           <p>마이너도 크오도 성실하게 글 써드립니다🤓☝️</p>
           <p>원하는 인물과 장르를 입력하면 AI가 이야기를 완성합니다.</p>
@@ -132,7 +125,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
 
       <section className={`space-y-10 border-t ${borderClasses} pt-10`}>
         
-        {/* 01: 왼쪽 멤버 입력 (직접 입력) */}
+        {/* 01: 왼쪽 멤버 입력*/}
         <div className="space-y-6">
           <h2 className="text-sm font-bold uppercase tracking-widest"><span className={`w-8 h-8 inline-flex rounded-full border ${borderClasses} items-center justify-center mr-2 text-xs font-bold`}>01</span>{language === 'kr' ? '왼쪽 멤버' : 'LEFT MEMBER'}👈</h2>
           <div className="grid grid-cols-2 gap-4">
@@ -153,7 +146,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
           </div>
         </div>
 
-        {/* 02: 오른쪽 멤버 입력 (직접 입력) */}
+        {/* 02: 오른쪽 멤버 입력 */}
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-bold uppercase tracking-widest"><span className={`w-8 h-8 inline-flex rounded-full border ${borderClasses} items-center justify-center mr-2 text-xs font-bold`}>02</span>{language === 'kr' ? '오른쪽 멤버' : 'RIGHT MEMBER'}👉</h2>
@@ -161,14 +154,21 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
           </div>
           
           {isNafes ? (
-            <input 
-                type="text" 
-                value={nafesName} 
-                onChange={e => setNafesName(e.target.value)} 
-                className={`w-full p-4 border ${borderClasses} rounded-8 text-sm bg-transparent focus:outline-none`} 
-                placeholder="이름을 입력하세요 (예: 여주)" 
-            />
+            // 나페스 모드 점선 박스 및 상세 설명 표시
+            <div className="animate-in slide-in-from-top-2 space-y-4">
+              <div className={`p-6 border border-dashed ${borderClasses} rounded-8 bg-transparent`}>
+                <p className="text-xs font-bold mb-3 opacity-60 uppercase tracking-widest">이름 또는 애칭, 글에 녹이고 싶은 특징(나이, 성격, MBTI)들을 적어주세요</p>
+                <input 
+                  type="text" 
+                  value={nafesName}
+                  onChange={(e) => setNafesName(e.target.value)}
+                  placeholder="예: 여주 (털털함, 25세, ENFP)"
+                  className={`w-full p-4 border ${borderClasses} rounded-8 text-sm focus:outline-none bg-transparent`}
+                />
+              </div>
+            </div>
           ) : (
+            // 일반 모드
             <div className="grid grid-cols-2 gap-4">
                 <input 
                   type="text"
@@ -187,7 +187,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
             </div>
           )}
 
-          {/* 등장인물 추가 (직접 입력) */}
+          {/* 등장인물 추가 */}
           <div className="flex flex-wrap items-center gap-2 pt-2">
             {extraMembers.map((em, i) => (
               <div key={i} className={`flex items-center gap-2 border ${borderClasses} px-3 py-1.5 text-xs font-bold rounded-full`}>
@@ -220,7 +220,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
           </div>
         </div>
 
-        {/* 03: 장르 선택 (신규 추가) */}
+        {/* 03: 장르 선택 */}
         <div className="space-y-4">
             <h2 className="text-sm font-bold uppercase tracking-widest"><span className={`w-8 h-8 inline-flex rounded-full border ${borderClasses} items-center justify-center mr-2 text-xs font-bold`}>03</span>{language === 'kr' ? '장르 선택' : 'GENRE'}</h2>
             <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
