@@ -13,3 +13,4 @@ export const AdPlaceholder: React.FC<Props> = ({ theme, borderClasses }) => (
     <div className="absolute top-2 right-2 cursor-pointer text-gray-300"><X size={14} /></div>
   </div>
 );
+export default AdPlaceholder;

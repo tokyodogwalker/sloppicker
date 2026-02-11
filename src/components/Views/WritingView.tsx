@@ -1,92 +1,204 @@
-import React, { useRef } from 'react';
-import { Story, AppState } from '@/types';
-import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
-import { generateEpisode } from '@/services/geminiService';
-import { AdPlaceholder } from '../Layout/AdPlaceholder';
+import React, { useState, useEffect, useRef } from 'react';
+import { Story, AppState, Theme } from '../../../types';
+import { ArrowLeft, Send, Loader2, Save } from 'lucide-react';
+import { generateEpisode } from '../../../services/geminiService';
+import AdPlaceholder from '../Layout/AdPlaceholder';
 
 interface Props {
   currentStory: Story;
   setCurrentStory: (s: Story) => void;
   loading: boolean;
   setLoading: (l: boolean) => void;
-  saveToLibrary: (s: Story) => void;
-  theme: string;
+  saveToLibrary: (s: Story, lang?: 'kr' | 'en') => void;
+  theme: Theme;
   setView: (v: AppState) => void;
   borderClasses: string;
   buttonActiveClasses: string;
   buttonHoverClasses: string;
+  language: 'kr' | 'en';
 }
 
-const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, setLoading, saveToLibrary, theme, setView, borderClasses, buttonActiveClasses, buttonHoverClasses }) => {
-  const contentRef = useRef<HTMLDivElement>(null);
-  const scrollAnchorRef = useRef<HTMLDivElement>(null);
-  const [customInput, setCustomInput] = React.useState('');
-  const lastEp = currentStory.episodes[currentStory.episodes.length - 1];
+const WritingView: React.FC<Props> = ({ 
+  currentStory, 
+  setCurrentStory, 
+  loading, 
+  setLoading, 
+  saveToLibrary, 
+  theme, 
+  setView, 
+  borderClasses, 
+  buttonActiveClasses, 
+  buttonHoverClasses, 
+  language 
+}) => {
+  const [userInput, setUserInput] = useState('');
+  const [autoScroll, setAutoScroll] = useState(true);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  const handleNext = async (choice: string) => {
+  useEffect(() => {
+    if (autoScroll && scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [currentStory.episodes, autoScroll]);
+
+  const handleNextEpisode = async (choice: string) => {
+    if (currentStory.episodes.length >= currentStory.totalEpisodes) return;
     setLoading(true);
+    setAutoScroll(true);
     try {
-      const nextEpNum = currentStory.episodes.length + 1;
-      const nextEp = await generateEpisode(currentStory, choice, nextEpNum);
-      const updated = { ...currentStory, episodes: [...currentStory.episodes, { episodeNumber: nextEpNum, content: nextEp.content, suggestions: nextEp.suggestions, userChoice: choice }], isCompleted: nextEpNum >= currentStory.totalEpisodes };
-      setCurrentStory(updated);
-      setCustomInput('');
-      setTimeout(() => scrollAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
-    } catch (e) { alert("다음 회차 생성에 실패했습니다."); }
-    finally { setLoading(false); }
+      const updatedEpisodes = [...currentStory.episodes];
+      updatedEpisodes[updatedEpisodes.length - 1].userChoice = choice;
+
+      const tempStory = { ...currentStory, episodes: updatedEpisodes };
+      setCurrentStory(tempStory);
+
+      const nextEpData = await generateEpisode(tempStory, choice, currentStory.episodes.length + 1);
+      
+      const newStory = {
+        ...tempStory,
+        episodes: [
+          ...updatedEpisodes,
+          {
+            episodeNumber: currentStory.episodes.length + 1,
+            content: nextEpData.content,
+            suggestions: nextEpData.suggestions
+          }
+        ]
+      };
+      
+      setCurrentStory(newStory);
+      saveToLibrary(newStory, language);
+    } catch (e) {
+      console.error(e);
+      alert(language === 'kr' ? "다음 이야기를 쓰는 도중 문제가 발생했습니다." : "Error generating next episode.");
+    } finally {
+      setLoading(false);
+      setUserInput('');
+    }
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 flex flex-col h-[calc(100vh-2rem)] animate-in fade-in relative">
-      <div className="flex-1 relative overflow-hidden">
-        <div ref={contentRef} className="h-full overflow-y-auto scrollbar-hide space-y-12 py-8 pb-32">
-          <div className={`flex items-center justify-between border-b ${borderClasses} pb-6 mb-8`}>
-            <div className="flex items-center gap-4">
-              <button onClick={() => setView(AppState.SETUP)} className={`p-2 border ${borderClasses} rounded-8 ${buttonHoverClasses}`}><ChevronLeft size={20} /></button>
-              <div className="overflow-hidden">
-                <h2 className="font-black text-xl italic tracking-tighter truncate max-w-[200px] md:max-w-md">{currentStory.title}</h2>
-                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{currentStory.episodes.length} / {currentStory.totalEpisodes} EPISODES</p>
-              </div>
-            </div>
-            <button onClick={() => saveToLibrary(currentStory)} className={`${buttonActiveClasses} px-5 py-2 rounded-8 text-[10px] font-black uppercase`}>SAVE</button>
+    <div className="max-w-4xl mx-auto min-h-screen flex flex-col relative pb-32">
+      
+      {/* Header */}
+      <header className={`flex items-center justify-between p-4 border-b ${borderClasses} bg-white/80 backdrop-blur-md sticky top-0 z-50 ${theme === 'dark' ? 'bg-zinc-950/80' : 'bg-white/80'}`}>
+        <div className="flex items-center gap-3 overflow-hidden">
+          <button onClick={() => setView(AppState.LIBRARY)} className={`p-2 rounded-full border ${borderClasses} ${buttonHoverClasses}`}>
+            <ArrowLeft size={18} />
+          </button>
+          
+          <div className="flex flex-col overflow-hidden">
+            <h1 className="text-sm font-bold truncate pr-4 relative [mask-image:linear-gradient(to_right,black_80%,transparent_100%)]">
+                {currentStory.title}
+            </h1>
+            <span className="text-[10px] opacity-60 font-medium">
+                [{currentStory.leftMember} X {currentStory.rightMember}] {currentStory.episodes.length} / {currentStory.totalEpisodes} EPISODES
+            </span>
           </div>
-          <div className="max-w-2xl mx-auto space-y-24">
-            {currentStory.episodes.map((ep, idx) => (
-              <div key={idx} ref={idx === currentStory.episodes.length - 1 ? scrollAnchorRef : null} className="space-y-8 animate-in duration-1000">
-                <div className="text-center py-2"><span className={`text-[10px] border ${borderClasses} px-4 py-1.5 font-bold uppercase tracking-widest rounded-full`}>Chapter {ep.episodeNumber}</span></div>
-                <div className="serif-content text-l whitespace-pre-wrap leading-relaxed">{ep.content.replace(/<br\s*\/?>/gi, '\n')}</div>
-              </div>
-            ))}
-          </div>
-          {loading && (
-            <div className="max-w-2xl mx-auto py-8 flex flex-col items-center gap-4">
-              <AdPlaceholder theme={theme} borderClasses={borderClasses} />
-              <Loader2 className="animate-spin" size={32} /><p className="text-sm font-bold text-gray-500 uppercase">Writing next chapter...</p>
-            </div>
-          )}
-          {!currentStory.isCompleted && !loading && (
-            <div className={`max-w-2xl mx-auto pt-32 border-t ${borderClasses} space-y-12`}>
-              <AdPlaceholder theme={theme} borderClasses={borderClasses} />
-              <div className="flex justify-center"><button onClick={() => saveToLibrary(currentStory)} className={`border ${borderClasses} px-5 py-3 rounded-8 text-xs font-black uppercase flex items-center gap-2 ${theme === 'dark' ? 'bg-zinc-900' : 'bg-white'}`}>내 서재에 저장</button></div>
-              <div className="space-y-6">
-                <h4 className="text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Next Selection</h4>
-                <div className="space-y-2">
-                  {lastEp.suggestions.map((s, idx) => (
-                    <button key={idx} onClick={() => handleNext(s)} className={`w-full p-5 border ${borderClasses} text-sm text-left rounded-8 font-medium flex items-center gap-4 group ${theme === 'dark' ? 'hover:bg-zinc-100 hover:text-zinc-950' : 'hover:bg-black hover:text-white'}`}>
-                      <span className={`text-[10px] font-black w-6 h-6 rounded-full border ${borderClasses} flex items-center justify-center group-hover:border-current`}>{idx + 1}</span>{s}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="relative">
-                <input type="text" value={customInput} onChange={e => setCustomInput(e.target.value)} placeholder="당신만의 서사를 입력하세요..." className={`w-full bg-transparent border ${borderClasses} rounded-8 py-5 pl-6 pr-16 text-sm focus:outline-none`} />
-                <button disabled={!customInput} onClick={() => handleNext(customInput)} className={`absolute right-2 top-2 bottom-2 px-4 ${buttonActiveClasses} rounded-[6px] disabled:opacity-20`}><ChevronRight size={20} /></button>
-              </div>
-            </div>
-          )}
         </div>
+        
+        <button 
+            onClick={() => saveToLibrary(currentStory, language)} 
+            className={`px-4 py-2 rounded-full font-bold text-xs transition-all ${theme === 'dark' ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'}`}
+        >
+            {language === 'kr' ? '저장' : 'SAVE'}
+        </button>
+      </header>
+
+      {/* Content Area */}
+      <div className="p-6 space-y-8">
+        {currentStory.episodes.map((ep, idx) => (
+          <div key={idx} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            
+            <div className="flex justify-center">
+                <span className={`inline-block px-4 py-1 rounded-full border ${borderClasses} text-[10px] font-bold uppercase tracking-widest opacity-60`}>
+                    Chapter {ep.episodeNumber}
+                </span>
+            </div>
+
+            <div className="prose prose-sm md:prose-base max-w-none leading-loose whitespace-pre-wrap font-serif opacity-90">
+              {ep.content}
+            </div>
+            
+            {ep.userChoice && (
+                <div className={`flex justify-end mt-4`}>
+                    <div className={`px-5 py-3 rounded-2xl rounded-tr-none text-sm font-bold ${theme === 'dark' ? 'bg-zinc-800 text-white' : 'bg-gray-100 text-black'}`}>
+                        {ep.userChoice}
+                    </div>
+                </div>
+            )}
+            
+            {idx > 0 && idx % 3 === 0 && (
+                <div className="my-12">
+                    <AdPlaceholder theme={theme} borderClasses={borderClasses} />
+                    <button 
+                        onClick={() => saveToLibrary(currentStory, language)}
+                        className={`w-full py-4 border ${borderClasses} rounded-8 text-sm font-bold flex items-center justify-center gap-2 ${buttonHoverClasses} mt-4`}
+                    >
+                        <Save size={16} />
+                        {language === 'kr' ? '내 서재에 저장' : 'Save to Library'}
+                    </button>
+                </div>
+            )}
+          </div>
+        ))}
+        
+        {loading && (
+            <div className="flex flex-col items-center justify-center py-12 space-y-4 opacity-50">
+                <Loader2 className="animate-spin w-8 h-8" />
+                <p className="text-xs font-bold animate-pulse">WRITING NEXT CHAPTER...</p>
+            </div>
+        )}
+
+        {!loading && currentStory.episodes.length < currentStory.totalEpisodes ? (
+            <div className="space-y-4 pt-8 border-t border-dashed border-gray-200 mt-8">
+                <div className="flex flex-wrap gap-2">
+                    {currentStory.episodes[currentStory.episodes.length - 1].suggestions.map((sugg, i) => (
+                        <button 
+                            key={i} 
+                            onClick={() => handleNextEpisode(sugg)}
+                            className={`px-4 py-2 border ${borderClasses} rounded-full text-xs font-medium transition-all ${buttonHoverClasses} text-left`}
+                        >
+                            {sugg}
+                        </button>
+                    ))}
+                </div>
+                
+                <div className="relative flex items-center gap-2">
+                    <input 
+                        type="text" 
+                        value={userInput}
+                        onChange={(e) => setUserInput(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && userInput && handleNextEpisode(userInput)}
+                        placeholder={language === 'kr' 
+                            ? "당신만의 서사를 입력하세요..." 
+                            : "Enter your own narrative..."}
+                        className={`flex-1 p-4 pr-12 rounded-full border ${borderClasses} bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-gray-400`}
+                    />
+                    <button 
+                        onClick={() => userInput && handleNextEpisode(userInput)}
+                        disabled={!userInput}
+                        className={`absolute right-2 p-2 rounded-full ${userInput ? buttonActiveClasses : 'opacity-20 cursor-not-allowed'}`}
+                    >
+                        <Send size={16} />
+                    </button>
+                </div>
+            </div>
+        ) : (
+             !loading && (
+                <div className="text-center py-12">
+                    <p className="text-sm font-bold opacity-50 mb-6">THE END</p>
+                    <button onClick={() => setView(AppState.LIBRARY)} className={`px-8 py-3 border ${borderClasses} rounded-full text-sm font-bold ${buttonHoverClasses}`}>
+                        {language === 'kr' ? '서재로 돌아가기' : 'Back to Library'}
+                    </button>
+                </div>
+             )
+        )}
+        
+        <div ref={scrollRef} />
       </div>
     </div>
   );
 };
+
 export default WritingView;

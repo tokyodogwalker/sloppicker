@@ -80,10 +80,11 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
     
     setLoading(true);
     try {
-      
+      const initialTitle = `${selectedGenre}물`;
+
       const initialStory: Story = {
         id: Date.now().toString(),
-        title: `[${leftMemberInput} X ${finalRightMember}] ${selectedGenre}물`,
+        title: initialTitle,
         
         genre: selectedGenre,
         theme: themeInput,
@@ -109,9 +110,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
 
       const firstEp = await generateEpisode(initialStory, themeInput, 1);
 
-      const finalTitle = firstEp.storyTitle 
-        ? `[${leftMemberInput} X ${finalRightMember}] ${firstEp.storyTitle}`
-        : initialStory.title;
+      const finalTitle = firstEp.storyTitle || initialTitle;
       
       const newStory = { 
         ...initialStory, 
