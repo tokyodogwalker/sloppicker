@@ -6,12 +6,12 @@ export const useAppConfig = () => {
   const [language, setLanguage] = useState<'kr' | 'en'>('kr');
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('pikfic_theme') as Theme;
+    const savedTheme = localStorage.getItem('spk_theme') as Theme;
     if (savedTheme) setTheme(savedTheme);
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('pikfic_theme', theme);
+    localStorage.setItem('spk_theme', theme);
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {

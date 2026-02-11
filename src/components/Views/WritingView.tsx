@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Story, AppState, Theme } from '../../../types';
-import { ArrowLeft, Send, Save, Loader2, Share2, Copy, Check } from 'lucide-react';
+import { ArrowLeft, Send, Save, Loader2 } from 'lucide-react';
 import { generateEpisode } from '../../../services/geminiService';
 import AdPlaceholder from '../Layout/AdPlaceholder';
 
@@ -15,12 +15,12 @@ interface Props {
   borderClasses: string;
   buttonActiveClasses: string;
   buttonHoverClasses: string;
+  language: 'kr' | 'en';
 }
 
 const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, setLoading, saveToLibrary, theme, setView, borderClasses, buttonActiveClasses, buttonHoverClasses }) => {
   const [userInput, setUserInput] = useState('');
   const [autoScroll, setAutoScroll] = useState(true);
-  const [copied, setCopied] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -34,14 +34,12 @@ const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, 
     setLoading(true);
     setAutoScroll(true);
     try {
-      // 마지막 에피소드에 사용자 선택 저장
       const updatedEpisodes = [...currentStory.episodes];
       updatedEpisodes[updatedEpisodes.length - 1].userChoice = choice;
 
       const tempStory = { ...currentStory, episodes: updatedEpisodes };
       setCurrentStory(tempStory);
 
-      // 다음 화 생성 요청
       const nextEpData = await generateEpisode(tempStory, choice, currentStory.episodes.length + 1);
       
       const newStory = {
@@ -67,27 +65,15 @@ const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, 
     }
   };
 
-  const handleShare = async () => {
-    const text = `${currentStory.title}\n\n${currentStory.episodes[0].content.substring(0, 100)}...\n\nRead more at PikFic!`;
-    if (navigator.share) {
-      try { await navigator.share({ title: currentStory.title, text }); } catch (err) { console.error(err); }
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
   return (
     <div className="max-w-4xl mx-auto h-[calc(100vh-80px)] flex flex-col relative">
-      {/* Header */}
+      {/* Header (복구됨) */}
       <header className={`flex items-center justify-between p-4 border-b ${borderClasses} bg-white/80 backdrop-blur-md sticky top-0 z-50 ${theme === 'dark' ? 'bg-zinc-950/80' : 'bg-white/80'}`}>
         <div className="flex items-center gap-3 overflow-hidden">
           <button onClick={() => setView(AppState.LIBRARY)} className={`p-2 rounded-full border ${borderClasses} ${buttonHoverClasses}`}>
             <ArrowLeft size={18} />
           </button>
           
-          {/* 제목이 길 경우 Gradient Fade 처리 */}
           <div className="flex flex-col overflow-hidden">
             <h1 className="text-sm font-bold truncate pr-4 relative [mask-image:linear-gradient(to_right,black_85%,transparent_100%)]">
                 {currentStory.title}
@@ -96,18 +82,18 @@ const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, 
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
-            <button onClick={() => saveToLibrary(currentStory)} className={`p-2 rounded-full border ${borderClasses} ${buttonHoverClasses}`}>
-                <Save size={18} />
-            </button>
-            <button onClick={handleShare} className={`p-2 rounded-full border ${borderClasses} ${buttonHoverClasses}`}>
-                {copied ? <Check size={18} /> : <Share2 size={18} />}
-            </button>
-        </div>
+        {/* [복구 완료] 공유 버튼 삭제 및 저장 버튼 텍스트 부활 */}
+        <button 
+            onClick={() => saveToLibrary(currentStory)} 
+            className={`px-4 py-2 rounded-full border ${borderClasses} ${buttonHoverClasses} flex items-center gap-2 text-xs font-bold`}
+        >
+            <Save size={16} />
+            {currentStory.language === 'kr' ? '저장' : 'SAVE'}
+        </button>
       </header>
 
       {/* Content Area */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-8 pb-32">
+      <div className="flex-1 overflow-y-auto p-6 space-y-8 pb-40">
         {currentStory.episodes.map((ep, idx) => (
           <div key={idx} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
              {/* Chapter Header */}
@@ -122,7 +108,7 @@ const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, 
               {ep.content}
             </div>
             
-            {/* User Choice (if made) */}
+            {/* User Choice */}
             {ep.userChoice && (
                 <div className={`flex justify-end mt-4`}>
                     <div className={`px-5 py-3 rounded-2xl rounded-tr-none text-sm font-bold ${theme === 'dark' ? 'bg-zinc-800 text-white' : 'bg-gray-100 text-black'}`}>
@@ -131,7 +117,7 @@ const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, 
                 </div>
             )}
             
-            {/* Ad Placeholder after every 3 episodes */}
+            {/* Ad Placeholder */}
             {idx > 0 && idx % 3 === 0 && <AdPlaceholder theme={theme} />}
           </div>
         ))}
@@ -147,17 +133,17 @@ const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, 
         <div ref={scrollRef} />
       </div>
 
-      {/* Input Area */}
+      {/* Input Area (수정됨: 선택지 버튼 레이아웃 개선) */}
       <div className={`p-4 border-t ${borderClasses} bg-white/95 backdrop-blur ${theme === 'dark' ? 'bg-zinc-950/95' : 'bg-white/95'} absolute bottom-0 w-full z-40`}>
         {!loading && currentStory.episodes.length < currentStory.totalEpisodes ? (
             <div className="space-y-3 max-w-4xl mx-auto">
-                {/* Suggestions */}
-                <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+                {/* [수정 완료] Suggestions: 꼬이지 않게 flex-wrap 적용 */}
+                <div className="flex flex-wrap gap-2 pb-2">
                     {currentStory.episodes[currentStory.episodes.length - 1].suggestions.map((sugg, i) => (
                         <button 
                             key={i} 
                             onClick={() => handleNextEpisode(sugg)}
-                            className={`flex-shrink-0 px-4 py-2 border ${borderClasses} rounded-full text-xs font-medium whitespace-nowrap transition-all ${buttonHoverClasses}`}
+                            className={`px-4 py-2 border ${borderClasses} rounded-full text-xs font-medium transition-all ${buttonHoverClasses} text-left truncate max-w-full`}
                         >
                             {sugg}
                         </button>
@@ -171,9 +157,9 @@ const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, 
                         value={userInput}
                         onChange={(e) => setUserInput(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && userInput && handleNextEpisode(userInput)}
-                        placeholder={language === 'kr' 
-                          ? "다음 상황으로 보고 싶은 장면, 대사, 분위기 등을 자유롭게 적어주세요" 
-                          : "Describe the scene, dialogue, or mood you want to see next..."}
+                        placeholder={currentStory.language === 'kr' 
+                            ? "다음 상황으로 보고 싶은 장면, 대사, 분위기 등을 자유롭게 적어주세요" 
+                            : "Describe the scene, dialogue, or mood you want to see next..."}
                         className={`flex-1 p-4 pr-12 rounded-full border ${borderClasses} bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-gray-400`}
                     />
                     <button 

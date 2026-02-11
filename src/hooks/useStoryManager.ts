@@ -7,17 +7,17 @@ export const useStoryManager = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem('pikfic_stories');
+    const saved = localStorage.getItem('spk_stories');
     if (saved) setStories(JSON.parse(saved));
   }, []);
 
   const saveStories = (updated: Story[]) => {
     setStories(updated);
-    localStorage.setItem('pikfic_stories', JSON.stringify(updated));
+    localStorage.setItem('spk_stories', JSON.stringify(updated));
   };
 
   const saveToLibrary = (story: Story) => {
-    const currentStories = JSON.parse(localStorage.getItem('pikfic_stories') || '[]');
+    const currentStories = JSON.parse(localStorage.getItem('spk_stories') || '[]');
     const existingIdx = currentStories.findIndex((s: Story) => s.id === story.id);
     const updated = existingIdx >= 0 
       ? currentStories.map((s: Story, i: number) => i === existingIdx ? story : s)

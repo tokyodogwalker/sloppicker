@@ -61,7 +61,8 @@ const App: React.FC = () => {
         )}
       </main>
 
-      <footer className={`py-12 border-t ${borderClasses} text-center opacity-60`}>
+      <footer className={`py-12 pb-40 border-t border-solid ${borderClasses} text-center opacity-60`}>
+        <p className="text-[10px] font-bold uppercase tracking-widest mb-3">⚠️ DISCLAIMER</p>
         <div className="space-y-1 text-[10px] font-medium max-w-2xl mx-auto px-6">
             <p>{language === 'kr' ? '본 서비스는 AI 기술을 활용한 픽션 창작 도구이며, 생성된 내용은 실존 인물 및 단체와 무관합니다.' : 'This service is an AI-powered fiction tool. Generated content is unrelated to real persons or organizations.'}</p>
             <p>{language === 'kr' ? '실존 인물의 명예를 훼손하거나 성적 수치심을 유발하는 콘텐츠 생성을 엄격히 금지합니다.' : 'Generating content that defames real people or creates sexually explicit material is strictly prohibited.'}</p>
