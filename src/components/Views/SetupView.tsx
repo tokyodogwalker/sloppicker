@@ -231,7 +231,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
             {!isAddingExtra ? (
                 <button 
                   onClick={() => setIsAddingExtra(true)} 
-                  className={`px-4 py-3 border border-dashed ${borderClasses} rounded-8 flex items-center gap-2 text-xs font-bold hover:bg-gray-50 transition-all opacity-60 hover:opacity-100`}
+                  className={`px-4 py-3 border border-dashed ${borderClasses} rounded-8 flex items-center gap-2 text-xs font-bold hover:bg-gray-50 transition-all opacity-60 hover:opacity-10`}
                 >
                     <Plus size={14} /> {language === 'kr' ? '등장인물 추가' : 'Add Character'}
                 </button>
@@ -281,7 +281,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
                     {/* 장르 변경 버튼 */}
                     <button 
                         onClick={() => setIsSelectingGenre(!isSelectingGenre)} 
-                        className={`px-4 py-2 border border-dashed ${borderClasses} rounded-8 flex items-center gap-2 text-xs font-bold hover:bg-gray-50 transition-all opacity-60 hover:opacity-100`}
+                        className={`px-4 py-2 border border-dashed ${borderClasses} rounded-8 flex items-center gap-2 text-xs font-bold hover:bg-gray-50 transition-all opacity-60 hover:opacity-10`}
                     >
                         <Plus size={14} /> {language === 'kr' ? '장르 변경' : 'Change Genre'}
                     </button>
