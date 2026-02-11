@@ -67,7 +67,7 @@ const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, 
           {!currentStory.isCompleted && !loading && (
             <div className={`max-w-2xl mx-auto pt-32 border-t ${borderClasses} space-y-12`}>
               <AdPlaceholder theme={theme} borderClasses={borderClasses} />
-              <div className="flex justify-center"><button onClick={() => saveToLibrary(currentStory,language)} className={`w-full py-4 border ${borderClasses} rounded-8 text-sm font-bold flex items-center justify-center gap-2 ${buttonHoverClasses} mt-4`}
+              <div className="flex justify-center"><button onClick={() => saveToLibrary(currentStory,language)} className={`flex-1 p-4 pr-12 border ${borderClasses} rounded-8 text-sm font-bold flex items-center justify-center gap-2 ${buttonHoverClasses} mt-4`}
                     >
                         {language === 'kr' ? '내 서재에 저장' : 'Save to Library'}</button></div>
               <div className="space-y-6">
@@ -84,7 +84,7 @@ const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, 
                 <input type="text" value={customInput} onChange={e => setCustomInput(e.target.value)} placeholder={language === 'kr' 
                             ? "당신만의 서사를 입력하세요..." 
                             : "Enter your own narrative..."}
-                        className={`flex-1 p-4 pr-12 rounded-full border ${borderClasses} bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-gray-400`}/>
+                        className={`w-full rounded-full border ${borderClasses} bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-gray-400`}/>
                 <button disabled={!customInput} onClick={() => handleNext(customInput)} className={`absolute right-2 top-2 bottom-2 px-4 ${buttonActiveClasses} rounded-[6px] disabled:opacity-20`}><ChevronRight size={20} /></button>
               </div>
             </div>
