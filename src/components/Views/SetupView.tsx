@@ -1,5 +1,3 @@
-// src/components/Views/SetupView.tsx
-
 import React, { useState } from 'react';
 import { Story, AppState, Genre, ExtraCharacter } from '../../../types';
 import { Plus, X, Loader2, Globe } from 'lucide-react';
@@ -22,26 +20,33 @@ interface Props {
 }
 
 const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading, setCurrentStory, setView, borderClasses, buttonActiveClasses, buttonHoverClasses }) => {
-  // 입력 상태값
+  // 1. 왼쪽 멤버 입력 상태
   const [leftGroupInput, setLeftGroupInput] = useState('');
   const [leftMemberInput, setLeftMemberInput] = useState('');
   
+  // 2. 오른쪽 멤버 입력 상태
   const [rightGroupInput, setRightGroupInput] = useState('');
   const [rightMemberInput, setRightMemberInput] = useState('');
   
+  // 3. 나페스 모드 상태
   const [isNafes, setIsNafes] = useState(false);
   const [nafesName, setNafesName] = useState('여주');
   
+  // 4. 등장인물 추가 상태
   const [extraMembers, setExtraMembers] = useState<ExtraCharacter[]>([]);
   const [isAddingExtra, setIsAddingExtra] = useState(false);
   const [tempExtraGroup, setTempExtraGroup] = useState('');
   const [tempExtraName, setTempExtraName] = useState('');
   
+  // 5. 장르 선택 상태
   const [selectedGenre, setSelectedGenre] = useState<Genre>('일상');
+  const [isSelectingGenre, setIsSelectingGenre] = useState(false); 
   
+  // 6. 썰(프롬프트) 및 분량 상태
   const [themeInput, setThemeInput] = useState('');
   const [episodeLimit, setEpisodeLimit] = useState(10);
 
+  // 등장인물 추가 핸들러
   const handleAddExtra = () => {
     if (tempExtraGroup && tempExtraName) {
       setExtraMembers([...extraMembers, { groupName: tempExtraGroup, name: tempExtraName }]);
@@ -51,6 +56,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
     }
   };
 
+  // 연재 시작 핸들러
   const handleStart = async () => {
     if (!leftGroupInput || !leftMemberInput || !themeInput) return;
     if (!isNafes && (!rightGroupInput || !rightMemberInput)) return;
@@ -79,7 +85,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
         groupName: leftGroupInput, 
         
         totalEpisodes: episodeLimit,
-        episodes: [],
+        episodes: [], 
         isCompleted: false,
         createdAt: Date.now(),
         language
@@ -116,7 +122,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
       </div>
 
       <header className="text-center pt-8">
-        <img src="/slplogo.png" alt="Logo" className="mx-auto w-full max-w-[350px] mb-4" />
+        <img src="/pikficlogo.png" alt="Logo" className="mx-auto w-full max-w-[250px] mb-4" />
         <div className="space-y-1 opacity-70 text-[10px] font-bold uppercase tracking-[0.2em]">
           <p>마이너도 크오도 성실하게 글 써드립니다🤓☝️</p>
           <p>원하는 인물과 장르를 입력하면 AI가 이야기를 완성합니다.</p>
@@ -125,7 +131,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
 
       <section className={`space-y-10 border-t ${borderClasses} pt-10`}>
         
-        {/* 01: 왼쪽 멤버 입력*/}
+        {/* 01: 왼쪽 멤버 입력 */}
         <div className="space-y-6">
           <h2 className="text-sm font-bold uppercase tracking-widest"><span className={`w-8 h-8 inline-flex rounded-full border ${borderClasses} items-center justify-center mr-2 text-xs font-bold`}>01</span>{language === 'kr' ? '왼쪽 멤버' : 'LEFT MEMBER'}👈</h2>
           <div className="grid grid-cols-2 gap-4">
@@ -154,7 +160,6 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
           </div>
           
           {isNafes ? (
-            // 나페스 모드 점선 박스 및 상세 설명 표시
             <div className="animate-in slide-in-from-top-2 space-y-4">
               <div className={`p-6 border border-dashed ${borderClasses} rounded-8 bg-transparent`}>
                 <p className="text-xs font-bold mb-3 opacity-60 uppercase tracking-widest">이름 또는 애칭, 글에 녹이고 싶은 특징(나이, 성격, MBTI)들을 적어주세요</p>
@@ -168,7 +173,6 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
               </div>
             </div>
           ) : (
-            // 일반 모드
             <div className="grid grid-cols-2 gap-4">
                 <input 
                   type="text"
@@ -187,7 +191,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
             </div>
           )}
 
-          {/* 등장인물 추가 */}
+          {/* 등장인물 추가 버튼 */}
           <div className="flex flex-wrap items-center gap-2 pt-2">
             {extraMembers.map((em, i) => (
               <div key={i} className={`flex items-center gap-2 border ${borderClasses} px-3 py-1.5 text-xs font-bold rounded-full`}>
@@ -225,7 +229,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
           </div>
         </div>
 
-        {/* 03: 장르 선택 */}
+        {/* 03: 주제 및 소재 + 장르 선택 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6">
           <div className="space-y-4">
             <h2 className="text-sm font-bold uppercase tracking-widest"><span className={`w-8 h-8 inline-flex rounded-full border ${borderClasses} items-center justify-center mr-2 text-xs font-bold`}>03</span>{language === 'kr' ? '주제 및 소재 (썰)' : 'THEME & PROMPT'}</h2>
@@ -237,15 +241,15 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
                 onChange={e => setThemeInput(e.target.value)} 
             />
 
-            {/* 장르 선택 UI (네모 점선 스타일 적용) */}
+            {/* 장르 선택 UI */}
             <div className="flex flex-col gap-3 pt-2">
                 <div className="flex flex-wrap items-center gap-2">
-                    {/* 선택된 장르 태그 */}
+                    {/* 선택된 장르 표시 */}
                     <div className={`flex items-center gap-2 border ${borderClasses} px-3 py-1.5 text-xs font-bold rounded-full ${buttonActiveClasses}`}>
                         #{selectedGenre}
                     </div>
 
-                    {/* 장르 추가 버튼 (네모 점선 스타일) */}
+                    {/* 장르 변경 버튼 (네모 점선 스타일) */}
                     <button 
                         onClick={() => setIsSelectingGenre(!isSelectingGenre)} 
                         className={`px-4 py-2 border border-dashed ${borderClasses} rounded-8 flex items-center gap-2 text-xs font-bold hover:bg-gray-50 transition-all opacity-60 hover:opacity-100`}
@@ -269,7 +273,6 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
                     </div>
                 )}
             </div>
-
           </div>
 
           {/* 04: 연재 분량 */}
