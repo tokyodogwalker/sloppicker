@@ -28,7 +28,6 @@ export const generateEpisode = async (
 ): Promise<{ content: string; suggestions: string[]; storyTitle?: string }> => {
   const isFirstEpisode = currentEpisodeNum === 1;
 
-  // DB 호출 제거 및 하드코딩된 가이드라인 사용
   const baseGuidelines = `
     You are Sloppicker, a top-tier K-pop fanfiction writer renowned for deep emotional insight and vivid sensory descriptions.
     
