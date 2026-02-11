@@ -4,17 +4,17 @@ import { Plus, X, Loader2, Globe } from 'lucide-react';
 import { generateEpisode } from '../../../services/geminiService';
 
 const EPISODE_OPTIONS = [10, 20, 50, 100];
-const GENRE_OPTIONS: Genre[] = ['일상', '리얼물', '캠퍼스', '오피스', '오메가버스', '센티넬버스', 'TS', '빙의', '수인', '아포칼립스'];
+const GENRE_OPTIONS: Genre[] = ['일상', '리얼', '캠퍼스', '오피스', '오메가버스', '센티넬버스', 'TS', '빙의', '수인', '아포칼립스'];
 
 // [추가] 장르 표시용 다국어 매핑
 const GENRE_DISPLAY: Record<Genre, { kr: string; en: string }> = {
   '일상': { kr: '일상', en: 'Slice of Life' },
-  '리얼물': { kr: '리얼물', en: 'Real Idol Life' },
+  '리얼': { kr: '리얼', en: 'Real Idol Life' },
   '캠퍼스': { kr: '캠퍼스', en: 'Campus' },
   '오피스': { kr: '오피스', en: 'Office' },
   '오메가버스': { kr: '오메가버스', en: 'Omegaverse' },
   '센티넬버스': { kr: '센티넬버스', en: 'Sentinelverse' },
-  'TS': { kr: 'TS', en: 'TS (Genderbend)' },
+  'TS': { kr: 'TS', en: 'TS' },
   '빙의': { kr: '빙의', en: 'Possession' },
   '수인': { kr: '수인', en: 'Shapeshifter' },
   '아포칼립스': { kr: '아포칼립스', en: 'Apocalypse' },
@@ -162,14 +162,14 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
               type="text"
               value={leftGroupInput}
               onChange={(e) => setLeftGroupInput(e.target.value)}
-              placeholder={language === 'kr' ? "그룹명 (예: 세븐틴)" : "Group Name (e.g. SVT)"}
+              placeholder={language === 'kr' ? "그룹명" : "Group Name"}
               className={`w-full p-4 border ${borderClasses} rounded-8 text-sm bg-transparent focus:outline-none focus:ring-1 focus:ring-gray-400`}
             />
             <input 
               type="text"
               value={leftMemberInput}
               onChange={(e) => setLeftMemberInput(e.target.value)}
-              placeholder={language === 'kr' ? "이름 (예: 민규)" : "Name (e.g. Mingyu)"}
+              placeholder={language === 'kr' ? "이름" : "Name"}
               className={`w-full p-4 border ${borderClasses} rounded-8 text-sm bg-transparent focus:outline-none focus:ring-1 focus:ring-gray-400`}
             />
           </div>
@@ -180,7 +180,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-bold uppercase tracking-widest"><span className={`w-8 h-8 inline-flex rounded-full border ${borderClasses} items-center justify-center mr-2 text-xs font-bold`}>02</span>{language === 'kr' ? '오른쪽 멤버' : 'RIGHT MEMBER'}👉</h2>
             <button onClick={() => setIsNafes(!isNafes)} className={`flex items-center gap-2 px-4 py-2 border ${borderClasses} rounded-full text-[10px] font-bold transition-all ${isNafes ? buttonActiveClasses : buttonHoverClasses}`}>
-                🙋‍♀️ {language === 'kr' ? '저요저요' : 'Y/N (Self-Insert)'} {isNafes ? 'ON' : 'OFF'}
+                🙋‍♀️ {language === 'kr' ? '저요저요' : 'Self-Insert'} {isNafes ? 'ON' : 'OFF'}
             </button>
           </div>
           
@@ -207,7 +207,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
                   type="text"
                   value={rightGroupInput}
                   onChange={(e) => setRightGroupInput(e.target.value)}
-                  placeholder={language === 'kr' ? "그룹명 (예: 몬스타엑스)" : "Group Name (e.g. Monsta X)"}
+                  placeholder={language === 'kr' ? "그룹명" : "Group Name"}
                   className={`w-full p-4 border ${borderClasses} rounded-8 text-sm bg-transparent focus:outline-none focus:ring-1 focus:ring-gray-400`}
                 />
                 <input 
