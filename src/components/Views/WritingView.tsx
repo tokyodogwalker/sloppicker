@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Story, AppState, Theme } from '../../../types';
-import { ArrowLeft, Send, Save, Loader2 } from 'lucide-react';
+import { ArrowLeft, Send, Loader2, Save } from 'lucide-react'; // Share, Check 제거, Save 추가
 import { generateEpisode } from '../../../services/geminiService';
 import AdPlaceholder from '../Layout/AdPlaceholder';
 
@@ -9,7 +9,7 @@ interface Props {
   setCurrentStory: (s: Story) => void;
   loading: boolean;
   setLoading: (l: boolean) => void;
-  saveToLibrary: (s: Story) => void;
+  saveToLibrary: (s: Story, lang?: 'kr' | 'en') => void;
   theme: Theme;
   setView: (v: AppState) => void;
   borderClasses: string;
@@ -18,7 +18,19 @@ interface Props {
   language: 'kr' | 'en';
 }
 
-const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, setLoading, saveToLibrary, theme, setView, borderClasses, buttonActiveClasses, buttonHoverClasses }) => {
+const WritingView: React.FC<Props> = ({ 
+  currentStory, 
+  setCurrentStory, 
+  loading, 
+  setLoading, 
+  saveToLibrary, 
+  theme, 
+  setView, 
+  borderClasses, 
+  buttonActiveClasses, 
+  buttonHoverClasses, 
+  language // [해결] 여기서 language를 받아와야 오류가 안 납니다!
+}) => {
   const [userInput, setUserInput] = useState('');
   const [autoScroll, setAutoScroll] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -55,10 +67,10 @@ const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, 
       };
       
       setCurrentStory(newStory);
-      saveToLibrary(newStory);
+      saveToLibrary(newStory, language);
     } catch (e) {
       console.error(e);
-      alert("다음 이야기를 쓰는 도중 문제가 발생했습니다.");
+      alert(language === 'kr' ? "다음 이야기를 쓰는 도중 문제가 발생했습니다." : "Error generating next episode.");
     } finally {
       setLoading(false);
       setUserInput('');
@@ -66,8 +78,10 @@ const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, 
   };
 
   return (
-    <div className="max-w-4xl mx-auto h-[calc(100vh-80px)] flex flex-col relative">
-      {/* Header (복구됨) */}
+    // [복구] 챗봇 스타일(h-screen, overflow) 제거 -> 전체 스크롤 방식
+    <div className="max-w-4xl mx-auto min-h-screen flex flex-col relative pb-32">
+      
+      {/* Header */}
       <header className={`flex items-center justify-between p-4 border-b ${borderClasses} bg-white/80 backdrop-blur-md sticky top-0 z-50 ${theme === 'dark' ? 'bg-zinc-950/80' : 'bg-white/80'}`}>
         <div className="flex items-center gap-3 overflow-hidden">
           <button onClick={() => setView(AppState.LIBRARY)} className={`p-2 rounded-full border ${borderClasses} ${buttonHoverClasses}`}>
@@ -82,25 +96,25 @@ const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, 
           </div>
         </div>
         
-        {/* [복구 완료] 공유 버튼 삭제 및 저장 버튼 텍스트 부활 */}
+        {/* [복구] 저장 버튼: 검정 배경 + 흰 글씨 (다크모드 대응) */}
         <button 
-            onClick={() => saveToLibrary(currentStory)} 
-            className={`px-4 py-2 rounded-full border ${borderClasses} ${buttonHoverClasses} flex items-center gap-2 text-xs font-bold`}
+            onClick={() => saveToLibrary(currentStory, language)} 
+            className={`px-4 py-2 rounded-full font-bold text-xs transition-all ${theme === 'dark' ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'}`}
         >
-            <Save size={16} />
-            {currentStory.language === 'kr' ? '저장' : 'SAVE'}
+            {language === 'kr' ? '저장' : 'SAVE'}
         </button>
       </header>
 
       {/* Content Area */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-8 pb-40">
+      <div className="p-6 space-y-8">
         {currentStory.episodes.map((ep, idx) => (
           <div key={idx} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-             {/* Chapter Header */}
-            <div className="flex items-center justify-center gap-4 opacity-30">
-                <div className={`h-px w-12 ${theme === 'dark' ? 'bg-white' : 'bg-black'}`}></div>
-                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Chapter {ep.episodeNumber}</span>
-                <div className={`h-px w-12 ${theme === 'dark' ? 'bg-white' : 'bg-black'}`}></div>
+            
+            {/* [복구] Chapter Header: 타원형(Pill) 스타일 */}
+            <div className="flex justify-center">
+                <span className={`inline-block px-4 py-1 rounded-full border ${borderClasses} text-[10px] font-bold uppercase tracking-widest opacity-60`}>
+                    Chapter {ep.episodeNumber}
+                </span>
             </div>
 
             {/* Content */}
@@ -117,8 +131,19 @@ const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, 
                 </div>
             )}
             
-            {/* Ad Placeholder */}
-            {idx > 0 && idx % 3 === 0 && <AdPlaceholder theme={theme} />}
+            {/* [복구] 3화마다 광고 배너 + 저장 버튼 노출 */}
+            {idx > 0 && idx % 3 === 0 && (
+                <div className="my-12">
+                    <AdPlaceholder theme={theme} borderClasses={borderClasses} />
+                    <button 
+                        onClick={() => saveToLibrary(currentStory, language)}
+                        className={`w-full py-4 border ${borderClasses} rounded-8 text-sm font-bold flex items-center justify-center gap-2 ${buttonHoverClasses} mt-4`}
+                    >
+                        <Save size={16} />
+                        {language === 'kr' ? '내 서재에 저장' : 'Save to Library'}
+                    </button>
+                </div>
+            )}
           </div>
         ))}
         
@@ -129,21 +154,17 @@ const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, 
                 <p className="text-xs font-bold animate-pulse">WRITING NEXT CHAPTER...</p>
             </div>
         )}
-        
-        <div ref={scrollRef} />
-      </div>
 
-      {/* Input Area (수정됨: 선택지 버튼 레이아웃 개선) */}
-      <div className={`p-4 border-t ${borderClasses} bg-white/95 backdrop-blur ${theme === 'dark' ? 'bg-zinc-950/95' : 'bg-white/95'} absolute bottom-0 w-full z-40`}>
+        {/* [복구] Input Area: 챗봇(Fixed) 스타일 제거하고 글 아래에 자연스럽게 배치 */}
         {!loading && currentStory.episodes.length < currentStory.totalEpisodes ? (
-            <div className="space-y-3 max-w-4xl mx-auto">
-                {/* [수정 완료] Suggestions: 꼬이지 않게 flex-wrap 적용 */}
-                <div className="flex flex-wrap gap-2 pb-2">
+            <div className="space-y-4 pt-8 border-t border-dashed border-gray-200 mt-8">
+                {/* Suggestions */}
+                <div className="flex flex-wrap gap-2">
                     {currentStory.episodes[currentStory.episodes.length - 1].suggestions.map((sugg, i) => (
                         <button 
                             key={i} 
                             onClick={() => handleNextEpisode(sugg)}
-                            className={`px-4 py-2 border ${borderClasses} rounded-full text-xs font-medium transition-all ${buttonHoverClasses} text-left truncate max-w-full`}
+                            className={`px-4 py-2 border ${borderClasses} rounded-full text-xs font-medium transition-all ${buttonHoverClasses} text-left`}
                         >
                             {sugg}
                         </button>
@@ -157,7 +178,7 @@ const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, 
                         value={userInput}
                         onChange={(e) => setUserInput(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && userInput && handleNextEpisode(userInput)}
-                        placeholder={currentStory.language === 'kr' 
+                        placeholder={language === 'kr' 
                             ? "다음 상황으로 보고 싶은 장면, 대사, 분위기 등을 자유롭게 적어주세요" 
                             : "Describe the scene, dialogue, or mood you want to see next..."}
                         className={`flex-1 p-4 pr-12 rounded-full border ${borderClasses} bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-gray-400`}
@@ -173,14 +194,16 @@ const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, 
             </div>
         ) : (
              !loading && (
-                <div className="text-center py-4">
-                    <p className="text-sm font-bold opacity-50">THE END</p>
-                    <button onClick={() => setView(AppState.LIBRARY)} className={`mt-4 px-6 py-2 border ${borderClasses} rounded-full text-xs font-bold ${buttonHoverClasses}`}>
-                        서재로 돌아가기
+                <div className="text-center py-12">
+                    <p className="text-sm font-bold opacity-50 mb-6">THE END</p>
+                    <button onClick={() => setView(AppState.LIBRARY)} className={`px-8 py-3 border ${borderClasses} rounded-full text-sm font-bold ${buttonHoverClasses}`}>
+                        {language === 'kr' ? '서재로 돌아가기' : 'Back to Library'}
                     </button>
                 </div>
              )
         )}
+        
+        <div ref={scrollRef} />
       </div>
     </div>
   );
