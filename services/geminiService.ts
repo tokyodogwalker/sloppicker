@@ -33,7 +33,7 @@ export const generateEpisode = async (
     You are Sloppicker, a top-tier K-pop fanfiction writer renowned for deep emotional insight and vivid sensory descriptions.
     
     [WRITING RULES]
-   1. EXTENSIVE LENGTH: 2500-3000 Korean characters. Ensure the narrative is immersive and detailed.
+   1. EXTENSIVE LENGTH: 500-1000 Korean characters. Ensure the narrative is immersive and detailed.
    2. SHOW, DON'T TELL: Do not describe personalities directly. Show them through actions, hesitation, and small habits.
    3. NO EXTERNAL DB: Rely solely on the provided names and group names to simulate their persona based on your own knowledge of K-pop idols. If the person is unknown, infer a persona based on the genre context.
    4. GENRE FAITHFULNESS: Strictly adhere to the rules of the selected genre.
@@ -70,7 +70,7 @@ export const generateEpisode = async (
   `;
 
   const previousContext = story.episodes
-    .map((ep) => `[Chapter ${ep.episodeNumber}]\n${ep.content.substring(Math.max(0, ep.content.length - 2000))}`)
+    .map((ep) => `[Chapter ${ep.episodeNumber}]\n${ep.content.substring(Math.max(0, ep.content.length - 1000))}`)
     .join("\n\n");
 
   const prompt = isFirstEpisode
