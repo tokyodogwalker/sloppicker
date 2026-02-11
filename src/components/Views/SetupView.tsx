@@ -214,7 +214,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
                   type="text"
                   value={rightMemberInput}
                   onChange={(e) => setRightMemberInput(e.target.value)}
-                  placeholder={language === 'kr' ? "이름 (예: 셔누)" : "Name (e.g. Shownu)"}
+                  placeholder={language === 'kr' ? "이름" : "Name (e.g. Shownu)"}
                   className={`w-full p-4 border ${borderClasses} rounded-8 text-sm bg-transparent focus:outline-none focus:ring-1 focus:ring-gray-400`}
                 />
             </div>
@@ -231,7 +231,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
             {!isAddingExtra ? (
                 <button 
                   onClick={() => setIsAddingExtra(true)} 
-                  className={`px-4 py-3 border border-dashed ${borderClasses} rounded-8 flex items-center gap-2 text-xs font-bold hover:bg-gray-50 transition-all opacity-60 hover:opacity-10`}
+                  className={`px-4 py-3 border border-dashed ${borderClasses} rounded-8 flex items-center gap-2 text-xs font-bold ${buttonHoverClasses} transition-all opacity-60 hover:opacity-100`}
                 >
                     <Plus size={14} /> {language === 'kr' ? '등장인물 추가' : 'Add Character'}
                 </button>
@@ -281,7 +281,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
                     {/* 장르 변경 버튼 */}
                     <button 
                         onClick={() => setIsSelectingGenre(!isSelectingGenre)} 
-                        className={`px-4 py-2 border border-dashed ${borderClasses} rounded-8 flex items-center gap-2 text-xs font-bold hover:bg-gray-50 transition-all opacity-60 hover:opacity-10`}
+                        className={`px-4 py-2 border border-dashed ${borderClasses} rounded-8 flex items-center gap-2 text-xs font-bold ${buttonHoverClasses} transition-all opacity-60 hover:opacity-100`}
                     >
                         <Plus size={14} /> {language === 'kr' ? '장르 변경' : 'Change Genre'}
                     </button>
