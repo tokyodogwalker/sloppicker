@@ -41,8 +41,8 @@ const App: React.FC = () => {
 
   // [추가] 로그인 핸들러
   const handleLogin = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'twitter',
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'x',
       options: { redirectTo: window.location.origin }
     });
     if (error) alert(error.message);
