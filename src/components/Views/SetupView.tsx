@@ -33,6 +33,9 @@ interface Props {
   buttonHoverClasses: string;
 }
 
+const MAX_NAME_VJ = 20; // 이름/그룹명 최대 길이
+const MAX_THEME_VJ = 500; // 주제(썰) 최대 길이
+
 const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading, setCurrentStory, setView, borderClasses, buttonActiveClasses, buttonHoverClasses }) => {
   // 1. 왼쪽 멤버 입력 상태
   const [leftGroupInput, setLeftGroupInput] = useState('');
@@ -167,6 +170,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
               type="text"
               value={leftGroupInput}
               onChange={(e) => setLeftGroupInput(e.target.value)}
+              maxLength={MAX_NAME_VJ}
               placeholder={language === 'kr' ? "그룹명" : "Group Name"}
               className={`w-full p-4 border ${borderClasses} rounded-8 text-sm bg-transparent focus:outline-none focus:ring-1 focus:ring-gray-400`}
             />
@@ -174,6 +178,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
               type="text"
               value={leftMemberInput}
               onChange={(e) => setLeftMemberInput(e.target.value)}
+              maxLength={MAX_NAME_VJ}
               placeholder={language === 'kr' ? "이름" : "Name"}
               className={`w-full p-4 border ${borderClasses} rounded-8 text-sm bg-transparent focus:outline-none focus:ring-1 focus:ring-gray-400`}
             />
@@ -201,6 +206,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
                   type="text" 
                   value={nafesName}
                   onChange={(e) => setNafesName(e.target.value)}
+                  maxLength={MAX_NAME_VJ}
                   placeholder={language === 'kr' ? "예: 여주 (털털함, 25세, ENFP)" : "e.g. Y/N (Cool, 25yo, ENFP)"}
                   className={`w-full p-4 border ${borderClasses} rounded-8 text-sm focus:outline-none bg-transparent`}
                 />
@@ -212,6 +218,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
                   type="text"
                   value={rightGroupInput}
                   onChange={(e) => setRightGroupInput(e.target.value)}
+                  maxLength={MAX_NAME_VJ}
                   placeholder={language === 'kr' ? "그룹명" : "Group Name"}
                   className={`w-full p-4 border ${borderClasses} rounded-8 text-sm bg-transparent focus:outline-none focus:ring-1 focus:ring-gray-400`}
                 />
@@ -219,6 +226,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
                   type="text"
                   value={rightMemberInput}
                   onChange={(e) => setRightMemberInput(e.target.value)}
+                  maxLength={MAX_NAME_VJ}
                   placeholder={language === 'kr' ? "이름" : "Name"}
                   className={`w-full p-4 border ${borderClasses} rounded-8 text-sm bg-transparent focus:outline-none focus:ring-1 focus:ring-gray-400`}
                 />
@@ -272,7 +280,8 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
                 placeholder={language === 'kr' ? "보고 싶은 상황, 대사, 분위기 등을 자유롭게 적어주세요." : "Describe the situation, dialogue, or mood you want to see."}
                 className={`w-full h-32 border ${borderClasses} rounded-8 p-4 text-sm bg-transparent focus:outline-none focus:ring-1 focus:ring-gray-400`} 
                 value={themeInput} 
-                onChange={e => setThemeInput(e.target.value)} 
+                onChange={e => setThemeInput(e.target.value)}
+                maxLength={MAX_THEME_VJ} 
             />
 
             {/* 장르 선택 UI */}
@@ -294,8 +303,8 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
 
                 {/* 장르 목록 (토글됨) */}
                 {isSelectingGenre && (
-                    <div className={`grid grid-cols-3 md:grid-cols-5 gap-2 animate-in fade-in slide-in-from-top-2 p-4 border border-dashed ${borderClasses} rounded-8`}>
-                        {GENRE_OPTIONS.map(genre => (
+                  <div className={`w-full grid grid-cols-2 md:grid-cols-3 gap-2 animate-in fade-in slide-in-from-top-2 p-4 border border-dashed ${borderClasses} rounded-8`}>
+                    {GENRE_OPTIONS.map(genre => (
                             <button 
                                 key={genre}
                                 onClick={() => { setSelectedGenre(genre); setIsSelectingGenre(false); }}
