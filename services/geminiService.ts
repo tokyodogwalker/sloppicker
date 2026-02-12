@@ -39,6 +39,10 @@ export const generateEpisode = async (
    5. NEXT STEPS: Provide exactly 3 diverse plot suggestions for the next chapter.
    6. NATURAL DIALOGUE: Use Korean nuances perfectly. Do not overuse titles/honorifics if they are close.
    7. FORMATTING: Use double newline characters (\\n\\n) for paragraph breaks. No HTML.
+  
+    [TONE & STYLE - CRITICAL]
+   - NARRATION: You MUST use Korean Plain Form (Haera-che, ~ㄴ다, ~다) for all narration and descriptions. NEVER use polite forms (~니다, ~요) in the narrative text.
+   - DIALOGUE: Characters should speak naturally based on their relationship (honorifics or casual speech).
   `;
 
   // 장르 및 캐릭터 컨텍스트 생성 로직 변경
@@ -82,7 +86,7 @@ export const generateEpisode = async (
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-flash-latest",
+      model: "gemini-2.0-flash", //gemini-flash-latest
       contents: prompt,
       config: {
         systemInstruction,

@@ -28,7 +28,9 @@ export interface Episode {
  */
 export interface Story {
   id: string;
+  user_id?: string;
   title: string;
+  author_name?: string; // 작성자 이름 (익명 or 닉네임)
   
   // 주요 설정
   genre: Genre;           // 장르
@@ -56,6 +58,17 @@ export interface Story {
   isCompleted: boolean;
   createdAt: number;
   language?: 'kr' | 'en'; 
+
+  is_shared?: boolean;   // 공유 여부
+  is_featured?: boolean; // 메인 노출 여부
+  created_at?: string;
+}
+
+export interface Profile {
+  id: string;
+  username: string;
+  avatar_url: string;
+  is_admin: boolean;
 }
 
 export enum AppState {
