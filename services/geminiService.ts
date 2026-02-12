@@ -16,7 +16,6 @@ const GENRE_PROMPTS: Record<string, string> = {
   '오메가버스': "Apply Omegaverse rules (Alpha/Beta/Omega, Pheromones, Heat/Rut cycles). Focus on instinct vs. reason and biological tension.",
   '센티넬버스': "Sentinel/Guide universe. Focus on Guiding, bonding, sensory overload, and the urgency of battles or missions.",
   'TS': "TS (Genderbend AU). An alternate universe where the character is born as the opposite gender. No physical transformation. Focus on the natural tension, distinctive social dynamics, and the reimagined relationship chemistry driven by this gender swap.",
-  '빙의': "One character possesses another body or realizes they are inside a fiction/game. Focus on confusion and adaptation.",
   '수인': "Characters have animal traits (ears, tail) or transformation abilities. Focus on animalistic instincts and behaviors.",
   '아포칼립스': "Zombie or disaster survival setting. Focus on scarcity, trust issues, danger, and survival romance in a ruined world."
 };

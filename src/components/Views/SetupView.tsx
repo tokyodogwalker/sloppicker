@@ -4,7 +4,7 @@ import { Plus, X, Loader2, Globe } from 'lucide-react';
 import { generateEpisode } from '../../../services/geminiService';
 
 const EPISODE_OPTIONS = [10, 20, 50, 100];
-const GENRE_OPTIONS: Genre[] = ['일상', '리얼', '캠퍼스', '오피스', '아포칼립스', '오메가버스', '센티넬버스', '빙의', '수인', 'TS'];
+const GENRE_OPTIONS: Genre[] = ['일상', '리얼', '캠퍼스', '오피스', '아포칼립스', '오메가버스', '센티넬버스', '수인', 'TS'];
 
 // [추가] 장르 표시용 다국어 매핑
 const GENRE_DISPLAY: Record<Genre, { kr: string; en: string }> = {
@@ -15,7 +15,6 @@ const GENRE_DISPLAY: Record<Genre, { kr: string; en: string }> = {
   '오메가버스': { kr: '오메가버스', en: 'Omegaverse' },
   '센티넬버스': { kr: '센티넬버스', en: 'Sentinelverse' },
   'TS': { kr: 'TS', en: 'TS' },
-  '빙의': { kr: '빙의', en: 'Possession' },
   '수인': { kr: '수인', en: 'Shapeshifter' },
   '아포칼립스': { kr: '아포칼립스', en: 'Apocalypse' },
 };
@@ -206,7 +205,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
                   type="text" 
                   value={nafesName}
                   onChange={(e) => setNafesName(e.target.value)}
-                  maxLength={MAX_NAME_VJ}
+                  maxLength={MAX_THEME_VJ}
                   placeholder={language === 'kr' ? "예: 여주 (털털함, 25세, ENFP)" : "e.g. Y/N (Cool, 25yo, ENFP)"}
                   className={`w-full p-4 border ${borderClasses} rounded-8 text-sm focus:outline-none bg-transparent`}
                 />
