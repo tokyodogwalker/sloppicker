@@ -207,7 +207,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
         )}
         {/* 2. 언어 변경 버튼 */}
         <button onClick={() => setLanguage(language === 'kr' ? 'en' : 'kr')} className={`px-3 py-2 border ${borderClasses} rounded-full transition-all ${buttonHoverClasses} flex items-center gap-2 shadow-sm`}>
-          <Globe size={18} /><span className="text-[10px] font-bold uppercase">{language.toUpperCase()}</span>
+          <Globe size={12} /><span className="text-[10px] font-bold uppercase">{language.toUpperCase()}</span>
         </button>
       </div>
 
