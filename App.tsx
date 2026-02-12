@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppState } from './types';
 import { useAppConfig } from './src/hooks/useAppConfig';
 import { useStoryManager } from './src/hooks/useStoryManager';
@@ -6,15 +6,52 @@ import SetupView from './src/components/Views/SetupView';
 import WritingView from './src/components/Views/WritingView';
 import LibraryView from './src/components/Views/LibraryView';
 import { ArrowUp, MessageSquare } from 'lucide-react';
+import { supabase } from './src/supabaseClient';
 
 const App: React.FC = () => {
   const { theme, setTheme, language, setLanguage } = useAppConfig();
-  const { stories, currentStory, setCurrentStory, loading, setLoading, saveToLibrary, deleteFromLibrary } = useStoryManager();
+  
+  // [추가] 유저 세션(로그인 상태) 관리
+  const [session, setSession] = useState<any>(null);
+
+  useEffect(() => {
+    // 초기 세션 확인
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    // 세션 변경 감지 (로그인/로그아웃)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // [수정] 로그인 시 userId를 useStoryManager에 전달 (내 서재 연동)
+  const { stories, currentStory, setCurrentStory, loading, setLoading, saveToLibrary, deleteFromLibrary } = useStoryManager(session?.user?.id);
+  
   const [view, setView] = useState<AppState>(AppState.SETUP);
 
   const borderClasses = theme === 'dark' ? 'border-zinc-800' : 'border-black';
   const buttonActiveClasses = theme === 'dark' ? 'bg-zinc-100 text-zinc-950' : 'bg-black text-white';
   const buttonHoverClasses = theme === 'dark' ? 'hover:bg-zinc-900' : 'hover:bg-gray-100';
+
+  // [추가] 로그인 핸들러
+  const handleLogin = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'twitter',
+    });
+    if (error) alert(error.message);
+  };
+
+  // [추가] 로그아웃 핸들러
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    // alert(language === 'kr' ? "로그아웃 되었습니다." : "Logged out.");
+  };
 
   return (
     <div className={`min-h-screen overflow-y-scroll relative flex flex-col transition-colors duration-300 ${theme === 'dark' ? 'bg-zinc-950 text-zinc-100' : 'bg-white text-black'}`} style={{ scrollbarGutter: 'stable' }}>
@@ -30,7 +67,11 @@ const App: React.FC = () => {
                 setView={setView} 
                 borderClasses={borderClasses} 
                 buttonActiveClasses={buttonActiveClasses} 
-                buttonHoverClasses={buttonHoverClasses} 
+                buttonHoverClasses={buttonHoverClasses}
+                // [추가] SetupView에 로그인 기능 전달
+                session={session}
+                onLogin={handleLogin}
+                onLogout={handleLogout}
             />
         )}
         {view === AppState.WRITING && currentStory && (
@@ -45,7 +86,7 @@ const App: React.FC = () => {
                 borderClasses={borderClasses} 
                 buttonActiveClasses={buttonActiveClasses} 
                 buttonHoverClasses={buttonHoverClasses} 
-                language={language}
+                language={language} 
             />
         )}
         {view === AppState.LIBRARY && (

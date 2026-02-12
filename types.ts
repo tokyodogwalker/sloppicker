@@ -28,6 +28,7 @@ export interface Episode {
  */
 export interface Story {
   id: string;
+  user_id?: string;
   title: string;
   
   // 주요 설정
@@ -56,6 +57,17 @@ export interface Story {
   isCompleted: boolean;
   createdAt: number;
   language?: 'kr' | 'en'; 
+
+  is_shared?: boolean;   // 공유 여부
+  is_featured?: boolean; // 메인 노출 여부
+  created_at?: string;
+}
+
+export interface Profile {
+  id: string;
+  username: string;
+  avatar_url: string;
+  is_admin: boolean;
 }
 
 export enum AppState {

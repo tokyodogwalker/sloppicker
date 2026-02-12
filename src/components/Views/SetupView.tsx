@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Story, AppState, Genre, ExtraCharacter } from '../../../types';
 import { Plus, X, Loader2, Globe } from 'lucide-react';
 import { generateEpisode } from '../../../services/geminiService';
+import { LogIn, LogOut, User } from 'lucide-react';
+import { supabase } from '../../supabaseClient';
 
 const EPISODE_OPTIONS = [10, 20, 50, 100];
 const GENRE_OPTIONS: Genre[] = ['일상', '리얼', '캠퍼스', '오피스', '아포칼립스', '오메가버스', '센티넬버스', '수인', 'TS'];
@@ -30,12 +32,15 @@ interface Props {
   borderClasses: string;
   buttonActiveClasses: string;
   buttonHoverClasses: string;
+  session: any;
+  onLogin: () => void;
+  onLogout: () => void;
 }
 
 const MAX_NAME_VJ = 20; // 이름/그룹명 최대 길이
 const MAX_THEME_VJ = 500; // 주제(썰) 최대 길이
 
-const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading, setCurrentStory, setView, borderClasses, buttonActiveClasses, buttonHoverClasses }) => {
+const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading, setCurrentStory, setView, borderClasses, buttonActiveClasses, buttonHoverClasses, session, onLogin, onLogout}) => {
   // 1. 왼쪽 멤버 입력 상태
   const [leftGroupInput, setLeftGroupInput] = useState('');
   const [leftMemberInput, setLeftMemberInput] = useState('');
@@ -61,6 +66,35 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
   // 6. 썰(프롬프트) 및 분량 상태
   const [themeInput, setThemeInput] = useState('');
   const [episodeLimit, setEpisodeLimit] = useState(10);
+
+  // [추가] 큐레이션(Featured) 관련 State
+  const [featuredStories, setFeaturedStories] = useState<Story[]>([]);
+  const [page, setPage] = useState(0);
+  const ITEMS_PER_PAGE = 9; //9개씩 로드
+
+  const loadFeatured = async (pageIndex: number) => {
+    try {
+      const { data, error } = await supabase
+        .from('stories')
+        .select('*')
+        .eq('is_featured', true) // 관리자가 승인한 글만
+        .range(pageIndex * ITEMS_PER_PAGE, (pageIndex + 1) * ITEMS_PER_PAGE - 1)
+        .order('created_at', { ascending: false });
+
+      if (data) {
+        if (pageIndex === 0) setFeaturedStories(data as any);
+        else setFeaturedStories(prev => [...prev, ...data as any]);
+      }
+      if (error) console.error("Featured Load Error:", error);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // [추가] 컴포넌트 마운트 시 큐레이션 로딩
+  useEffect(() => {
+    loadFeatured(0);
+  }, []);
 
   // 등장인물 추가 핸들러
   const handleAddExtra = () => {
@@ -136,7 +170,42 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-12 animate-in fade-in duration-700 pb-24 relative">
-      <div className="absolute top-4 right-4 md:top-8 md:right-8 z-50">
+      <div className="absolute top-4 right-4 md:top-8 md:right-8 z-50 flex items-center gap-2">
+        {session ? (
+          <div className="flex items-center gap-2 animate-in fade-in">
+             {/* 프로필 이미지 (없으면 아이콘) */}
+             {session.user.user_metadata.avatar_url ? (
+                <img 
+                  src={session.user.user_metadata.avatar_url} 
+                  alt="Profile" 
+                  className={`w-8 h-8 rounded-full border ${borderClasses}`}
+                />
+             ) : (
+                <div className={`w-8 h-8 rounded-full border ${borderClasses} flex items-center justify-center bg-gray-100 dark:bg-zinc-800`}>
+                  <User size={14} />
+                </div>
+             )}
+             
+             {/* 로그아웃 버튼 (작게) */}
+             <button 
+                onClick={onLogout}
+                className={`p-2 border ${borderClasses} rounded-full ${buttonHoverClasses} shadow-sm`}
+                title={language === 'kr' ? "로그아웃" : "Sign out"}
+             >
+                <LogOut size={14} />
+             </button>
+          </div>
+        ) : (
+          /* 로그인 버튼 */
+          <button 
+            onClick={onLogin}
+            className={`px-3 py-2 border ${borderClasses} rounded-full text-[10px] font-bold flex items-center gap-2 ${buttonActiveClasses} shadow-sm hover:opacity-80 transition-all`}
+          >
+            <LogIn size={12} />
+            {language === 'kr' ? 'X 로그인' : 'Sign in'}
+          </button>
+        )}
+        {/* 2. 언어 변경 버튼 */}
         <button onClick={() => setLanguage(language === 'kr' ? 'en' : 'kr')} className={`py-2 px-3 border ${borderClasses} rounded-full transition-all ${buttonHoverClasses} flex items-center gap-2 shadow-sm`}>
           <Globe size={18} /><span className="text-[10px] font-bold uppercase">{language.toUpperCase()}</span>
         </button>
@@ -343,6 +412,66 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
         >
           {loading && <Loader2 className="animate-spin" />} {language === 'kr' ? '연재 시작하기' : 'START WRITING'}
         </button>
+      </section>
+      
+
+      {/* [추가] Featured Stories (글공유) */}
+      <section className={`mt-24 border-t ${borderClasses} pt-12`}>
+        <div className="flex items-center justify-center gap-2 mb-8 opacity-60">
+            <h3 className="text-center text-xs font-black uppercase tracking-[0.3em]">Featured Stories</h3>
+        </div>
+
+        {featuredStories.length > 0 ? (
+            <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {featuredStories.map((story) => (
+                    <div 
+                    key={story.id} 
+                    onClick={() => { setCurrentStory(story); setView(AppState.WRITING); }}
+                    className={`border ${borderClasses} rounded-8 p-6 cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-900 transition-all relative overflow-hidden group h-[320px]`}
+                    >
+                    {/* 제목 & 장르 */}
+                    <div className="mb-4">
+                        <span className="text-[10px] font-bold border border-current opacity-40 px-2 py-1 rounded-full mb-2 inline-block">
+                        {story.genre}
+                        </span>
+                        <h4 className="font-bold text-lg leading-tight truncate mb-1">
+                          {story.title}
+                        </h4>
+                        <span className="text-xs opacity-60 block">
+                            [{story.leftMember} X {story.rightMember}]
+                        </span>
+                    </div>
+
+                    {/* 본문 미리보기 (그라데이션 블러) */}
+                    <div className="text-sm leading-relaxed opacity-80 font-serif relative h-[160px] overflow-hidden">
+                        {story.episodes?.[0]?.content}
+                        <div className={`absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white dark:to-zinc-950 pointer-events-none`} />
+                    </div>
+
+                    {/* Hover 시 '읽어보기' 표시 */}
+                    <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
+                        <span className="bg-white text-black border border-black px-4 py-2 rounded-full text-xs font-bold shadow-sm">READ NOW</span>
+                    </div>
+                    </div>
+                ))}
+                </div>
+
+                {/* 더보기 버튼 */}
+                <div className="text-center mt-12">
+                <button 
+                    onClick={() => { const nextPage = page + 1; setPage(nextPage); loadFeatured(nextPage); }}
+                    className={`px-8 py-3 border border-dashed ${borderClasses} rounded-full text-xs font-bold hover:bg-gray-100 dark:hover:bg-zinc-900 transition-all opacity-50 hover:opacity-100`}
+                >
+                    LOAD MORE (+9)
+                </button>
+                </div>
+            </>
+        ) : (
+            <div className="text-center py-12 opacity-40 text-xs font-bold">
+                {language === 'kr' ? '아직 등록된 글이 없습니다.' : 'No featured stories yet.'}
+            </div>
+        )}
       </section>
     </div>
   );
