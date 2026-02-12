@@ -43,6 +43,7 @@ const App: React.FC = () => {
   const handleLogin = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'twitter',
+      options: { redirectTo: window.location.origin }
     });
     if (error) alert(error.message);
   };
@@ -68,7 +69,6 @@ const App: React.FC = () => {
                 borderClasses={borderClasses} 
                 buttonActiveClasses={buttonActiveClasses} 
                 buttonHoverClasses={buttonHoverClasses}
-                // [추가] SetupView에 로그인 기능 전달
                 session={session}
                 onLogin={handleLogin}
                 onLogout={handleLogout}
