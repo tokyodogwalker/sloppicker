@@ -45,6 +45,7 @@ const App: React.FC = () => {
                 borderClasses={borderClasses} 
                 buttonActiveClasses={buttonActiveClasses} 
                 buttonHoverClasses={buttonHoverClasses} 
+                language={language}
             />
         )}
         {view === AppState.LIBRARY && (
