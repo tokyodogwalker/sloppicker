@@ -138,7 +138,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-12 animate-in fade-in duration-700 pb-24 relative">
       <div className="absolute top-4 right-4 md:top-8 md:right-8 z-50">
-        <button onClick={() => setLanguage(language === 'kr' ? 'en' : 'kr')} className={`p-3 border ${borderClasses} rounded-full transition-all ${buttonHoverClasses} flex items-center gap-2 shadow-sm`}>
+        <button onClick={() => setLanguage(language === 'kr' ? 'en' : 'kr')} className={`py-2 px-3 border ${borderClasses} rounded-full transition-all ${buttonHoverClasses} flex items-center gap-2 shadow-sm`}>
           <Globe size={18} /><span className="text-[10px] font-bold uppercase">{language.toUpperCase()}</span>
         </button>
       </div>
@@ -283,6 +283,9 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
                 onChange={e => setThemeInput(e.target.value)}
                 maxLength={MAX_THEME_VJ} 
             />
+            <div className="absolute bottom-3 right-3 text-[10px] opacity-40 font-bold">
+            {themeInput.length} / {MAX_THEME_VJ}
+            </div>
 
             {/* 장르 선택 UI */}
             <div className="flex flex-col gap-3 pt-2">
