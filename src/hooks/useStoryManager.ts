@@ -130,12 +130,12 @@ export const useStoryManager = (userId?: string) => {
     if (!error) {
       alert(lang === 'kr' ? "제출되었습니다!" : "Submitted successfully!");
       fetchStories();
+
     } else {
       console.error(error);
       alert("공유 실패");
     }
   };
-
   
   return { 
     stories, 

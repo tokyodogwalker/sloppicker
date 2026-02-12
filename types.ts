@@ -30,6 +30,7 @@ export interface Story {
   id: string;
   user_id?: string;
   title: string;
+  author_name?: string; // 작성자 이름 (익명 or 닉네임)
   
   // 주요 설정
   genre: Genre;           // 장르

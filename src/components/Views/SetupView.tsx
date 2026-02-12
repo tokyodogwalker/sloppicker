@@ -202,11 +202,11 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
             className={`px-3 py-2 border ${borderClasses} rounded-full text-[10px] font-bold flex items-center gap-2 ${buttonActiveClasses} shadow-sm hover:opacity-80 transition-all`}
           >
             <LogIn size={12} />
-            {language === 'kr' ? 'X 로그인' : 'Sign in'}
+            {language === 'kr' ? 'X 로그인' : 'X Sign in'}
           </button>
         )}
         {/* 2. 언어 변경 버튼 */}
-        <button onClick={() => setLanguage(language === 'kr' ? 'en' : 'kr')} className={`py-2 px-3 border ${borderClasses} rounded-full transition-all ${buttonHoverClasses} flex items-center gap-2 shadow-sm`}>
+        <button onClick={() => setLanguage(language === 'kr' ? 'en' : 'kr')} className={`py-3 px-2 border ${borderClasses} rounded-full transition-all ${buttonHoverClasses} flex items-center gap-2 shadow-sm`}>
           <Globe size={18} /><span className="text-[10px] font-bold uppercase">{language.toUpperCase()}</span>
         </button>
       </div>
@@ -418,7 +418,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
       {/* [추가] Featured Stories (글공유) */}
       <section className={`mt-24 border-t ${borderClasses} pt-12`}>
         <div className="flex items-center justify-center gap-2 mb-8 opacity-60">
-            <h3 className="text-center text-xs font-black uppercase tracking-[0.3em]">Featured Stories</h3>
+            <h3 className="text-center text-xs font-black uppercase tracking-[0.3em]">Sloptories</h3>
         </div>
 
         {featuredStories.length > 0 ? (
@@ -434,6 +434,10 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
                     <div className="mb-4">
                         <span className="text-[10px] font-bold border border-current opacity-40 px-2 py-1 rounded-full mb-2 inline-block">
                         {story.genre}
+                        </span>
+                        {/* [추가] 작성자 이름 표시 (우측 상단) */}
+                        <span className="text-[10px] font-medium opacity-50 flex items-center gap-1">
+                        by. {story.author_name || '익명'}
                         </span>
                         <h4 className="font-bold text-lg leading-tight truncate mb-1">
                           {story.title}
@@ -469,7 +473,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
             </>
         ) : (
             <div className="text-center py-12 opacity-40 text-xs font-bold">
-                {language === 'kr' ? '아직 등록된 글이 없습니다.' : 'No featured stories yet.'}
+                {language === 'kr' ? '아직 등록된 글이 없습니다.' : 'No sloptories yet.'}
             </div>
         )}
       </section>
