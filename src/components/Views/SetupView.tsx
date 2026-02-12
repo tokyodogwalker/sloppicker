@@ -38,7 +38,7 @@ interface Props {
 }
 
 const MAX_NAME_VJ = 20; // 이름/그룹명 최대 길이
-const MAX_THEME_VJ = 500; // 주제(썰) 최대 길이
+const MAX_THEME_VJ = 200; // 주제(썰) 최대 길이
 
 const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading, setCurrentStory, setView, borderClasses, buttonActiveClasses, buttonHoverClasses, session, onLogin, onLogout}) => {
   // 1. 왼쪽 멤버 입력 상태
