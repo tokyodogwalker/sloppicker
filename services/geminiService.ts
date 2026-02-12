@@ -86,7 +86,7 @@ export const generateEpisode = async (
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash", //gemini-flash-latest
+      model: "gemini-2.5-flash-lite", //gemini-flash-latest
       contents: prompt,
       config: {
         systemInstruction,
