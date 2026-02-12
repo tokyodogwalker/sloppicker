@@ -276,6 +276,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
           <div className="space-y-4">
             <h2 className="text-sm font-bold uppercase tracking-widest"><span className={`w-8 h-8 inline-flex rounded-full border ${borderClasses} items-center justify-center mr-2 text-xs font-bold`}>03</span>{language === 'kr' ? '주제 및 소재 (썰)' : 'THEME & PROMPT'}</h2>
             
+            <div className="relative">
             <textarea 
                 placeholder={language === 'kr' ? "보고 싶은 상황, 대사, 분위기 등을 자유롭게 적어주세요." : "Describe the situation, dialogue, or mood you want to see."}
                 className={`w-full h-32 border ${borderClasses} rounded-8 p-4 text-sm bg-transparent focus:outline-none focus:ring-1 focus:ring-gray-400`} 
@@ -286,6 +287,8 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
             <div className="absolute bottom-3 right-3 text-[10px] opacity-40 font-bold">
             {themeInput.length} / {MAX_THEME_VJ}
             </div>
+            </div>
+            
 
             {/* 장르 선택 UI */}
             <div className="flex flex-col gap-3 pt-2">
