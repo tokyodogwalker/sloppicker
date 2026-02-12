@@ -17,7 +17,7 @@ const App: React.FC = () => {
   const buttonHoverClasses = theme === 'dark' ? 'hover:bg-zinc-900' : 'hover:bg-gray-100';
 
   return (
-    <div className={`min-h-screen overflow-y-scroll relative flex flex-col transition-colors duration-300 ${theme === 'dark' ? 'bg-zinc-950 text-zinc-100' : 'bg-white text-black'}`}>
+    <div className={`min-h-screen overflow-y-scroll relative flex flex-col transition-colors duration-300 ${theme === 'dark' ? 'bg-zinc-950 text-zinc-100' : 'bg-white text-black'}`} style={{ scrollbarGutter: 'stable' }}>
       <main className="flex-1">
         {view === AppState.SETUP && (
             <SetupView 

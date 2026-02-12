@@ -31,13 +31,18 @@ const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, 
       const updated = { ...currentStory, episodes: [...currentStory.episodes, { episodeNumber: nextEpNum, content: nextEp.content, suggestions: nextEp.suggestions, userChoice: choice }], isCompleted: nextEpNum >= currentStory.totalEpisodes };
       setCurrentStory(updated);
       setCustomInput('');
-      
-      // 스크롤 이동 로직 수정: 전체 윈도우 스크롤을 아래로
       setTimeout(() => {
         scrollAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
-    } catch (e) { alert("다음 회차 생성에 실패했습니다."); }
-    finally { setLoading(false); }
+    } catch (e) { 
+      console.error("Episode Generation Error:", e);
+      alert(language === 'kr' 
+        ? "다음 회차 생성에 실패했습니다. 잠시 후 다시 시도해주세요." 
+        : "Failed to generate the next episode. Please try again."
+      ); 
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   return (
@@ -84,7 +89,7 @@ const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, 
             <div className={`max-w-2xl mx-auto pt-32 border-t ${borderClasses} space-y-12`}>
               <AdPlaceholder theme={theme} borderClasses={borderClasses} />
               <div className="flex justify-center">
-                  <button onClick={() => saveToLibrary(currentStory, language)} className={`border ${borderClasses} px-5 py-3 rounded-8 text-xs font-black uppercase flex items-center gap-2 ${theme === 'dark' ? 'bg-zinc-900' : 'bg-white'}`}>
+                  <button onClick={() => saveToLibrary(currentStory, language)} className={`border ${borderClasses} px-5 py-2 rounded-8 text-xs font-black uppercase flex items-center gap-2 ${theme === 'dark' ? 'bg-zinc-900' : 'bg-white'}`}>
                     {language === 'kr' ? '내 서재에 저장' : 'Save to Library'}
                   </button>
               </div>
