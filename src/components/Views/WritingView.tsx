@@ -19,7 +19,6 @@ interface Props {
 }
 
 const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, setLoading, saveToLibrary, theme, setView, borderClasses, buttonActiveClasses, buttonHoverClasses, language }) => {
-  const contentRef = useRef<HTMLDivElement>(null);
   const scrollAnchorRef = useRef<HTMLDivElement>(null);
   const [customInput, setCustomInput] = React.useState('');
   const lastEp = currentStory.episodes[currentStory.episodes.length - 1];
@@ -32,45 +31,63 @@ const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, 
       const updated = { ...currentStory, episodes: [...currentStory.episodes, { episodeNumber: nextEpNum, content: nextEp.content, suggestions: nextEp.suggestions, userChoice: choice }], isCompleted: nextEpNum >= currentStory.totalEpisodes };
       setCurrentStory(updated);
       setCustomInput('');
-      setTimeout(() => scrollAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+      
+      // 스크롤 이동 로직 수정: 전체 윈도우 스크롤을 아래로
+      setTimeout(() => {
+        scrollAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
     } catch (e) { alert("다음 회차 생성에 실패했습니다."); }
     finally { setLoading(false); }
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 flex flex-col h-[calc(100vh-2rem)] animate-in fade-in relative">
-      <div className="flex-1 relative overflow-hidden">
-        <div ref={contentRef} className="h-full overflow-y-auto scrollbar-hide space-y-12 py-8 pb-32">
-          <div className={`flex items-center justify-between border-b ${borderClasses} pb-6 mb-8`}>
-            <div className="flex items-center gap-4">
-              <button onClick={() => setView(AppState.SETUP)} className={`p-2 border ${borderClasses} rounded-8 ${buttonHoverClasses}`}><ChevronLeft size={20} /></button>
-              <div className="overflow-hidden">
-                <h2 className="font-black text-xl italic tracking-tighter truncate max-w-[200px] md:max-w-md">{currentStory.title}</h2>
-                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{currentStory.episodes.length} / {currentStory.totalEpisodes} EPISODES</p>
+    // [수정 포인트] h-[calc...] 및 flex-col 제거, pb-32 추가
+    <div className="max-w-4xl mx-auto p-6 animate-in fade-in relative pb-32">
+        
+        {/* [수정 포인트] overflow-hidden 제거 */}
+        <div className="space-y-12 py-8">
+            
+          {/* Header */}
+          <div className={`flex items-center justify-between border-b ${borderClasses} pb-6 mb-8 sticky top-0 bg-white/80 backdrop-blur-md z-50 ${theme === 'dark' ? 'bg-zinc-950/80' : 'bg-white/80'}`}>
+            <div className="flex items-center gap-4 overflow-hidden">
+              <button onClick={() => setView(AppState.SETUP)} className={`flex-shrink-0 p-2 border ${borderClasses} rounded-8 ${buttonHoverClasses}`}><ChevronLeft size={20} /></button>
+              <div className="flex flex-col overflow-hidden min-w-0">
+                 {/* 제목 Gradient Blur 적용 */}
+                 <h1 className="text-sm font-bold truncate pr-4 relative [mask-image:linear-gradient(to_right,black_80%,transparent_100%)]">
+                    {currentStory.title}
+                 </h1>
+                 {/* 소제목에 [멤버 X 멤버] 표시 추가 */}
+                 <span className="text-[10px] opacity-60 font-medium truncate">[{currentStory.leftMember} X {currentStory.rightMember}] {currentStory.episodes.length} / {currentStory.totalEpisodes} EPISODES</span>
               </div>
             </div>
-            <button onClick={() => saveToLibrary(currentStory)} className={`${buttonActiveClasses} px-5 py-2 rounded-8 text-[10px] font-black uppercase`}>SAVE</button>
+            <button onClick={() => saveToLibrary(currentStory, language)} className={`flex-shrink-0 ${buttonActiveClasses} px-5 py-2 rounded-8 text-[10px] font-black uppercase`}>SAVE</button>
           </div>
+
           <div className="max-w-2xl mx-auto space-y-24">
             {currentStory.episodes.map((ep, idx) => (
               <div key={idx} ref={idx === currentStory.episodes.length - 1 ? scrollAnchorRef : null} className="space-y-8 animate-in duration-1000">
                 <div className="text-center py-2"><span className={`text-[10px] border ${borderClasses} px-4 py-1.5 font-bold uppercase tracking-widest rounded-full`}>Chapter {ep.episodeNumber}</span></div>
-                <div className="serif-content text-l whitespace-pre-wrap leading-relaxed">{ep.content.replace(/<br\s*\/?>/gi, '\n')}</div>
+                {/* [수정 포인트] 줄바꿈 처리 로직 적용 */}
+                <div className="serif-content text-l whitespace-pre-wrap leading-relaxed">{ep.content.split('\\n').join('\n').replace(/<br\s*\/?>/gi, '\n')}</div>
               </div>
             ))}
           </div>
+
           {loading && (
             <div className="max-w-2xl mx-auto py-8 flex flex-col items-center gap-4">
               <AdPlaceholder theme={theme} borderClasses={borderClasses} />
               <Loader2 className="animate-spin" size={32} /><p className="text-sm font-bold text-gray-500 uppercase">Writing next chapter...</p>
             </div>
           )}
+
           {!currentStory.isCompleted && !loading && (
             <div className={`max-w-2xl mx-auto pt-32 border-t ${borderClasses} space-y-12`}>
               <AdPlaceholder theme={theme} borderClasses={borderClasses} />
-              <div className="flex justify-center"><button onClick={() => saveToLibrary(currentStory,language)} className={`px-8 p-4 border ${borderClasses} rounded-8 text-sm font-bold flex items-center justify-center gap-2 ${buttonHoverClasses} mt-4`}
-                    >
-                        {language === 'kr' ? '내 서재에 저장' : 'Save to Library'}</button></div>
+              <div className="flex justify-center">
+                  <button onClick={() => saveToLibrary(currentStory, language)} className={`border ${borderClasses} px-5 py-3 rounded-8 text-xs font-black uppercase flex items-center gap-2 ${theme === 'dark' ? 'bg-zinc-900' : 'bg-white'}`}>
+                    {language === 'kr' ? '내 서재에 저장' : 'Save to Library'}
+                  </button>
+              </div>
               <div className="space-y-6">
                 <h4 className="text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Next Selection</h4>
                 <div className="space-y-2">
@@ -82,14 +99,16 @@ const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, 
                 </div>
               </div>
               <div className="relative">
-                <input type="text" value={customInput} onChange={e => setCustomInput(e.target.value)} placeholder={language === 'kr'  ? "당신만의 서사를 입력하세요..."  : "Enter your own narrative..."}
-                        className={`flex-1 p-4 pr-12 border ${borderClasses} bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-gray-400`}/>
+                <input type="text" value={customInput} onChange={e => setCustomInput(e.target.value)} 
+                    placeholder={language === 'kr' ? "당신만의 서사를 입력하세요..." : "Enter your own narrative..."}
+                    className={`w-full bg-transparent border ${borderClasses} rounded-8 py-5 pl-6 pr-16 text-sm focus:outline-none`} 
+                    onKeyDown={(e) => e.key === 'Enter' && customInput && handleNext(customInput)}
+                />
                 <button disabled={!customInput} onClick={() => handleNext(customInput)} className={`absolute right-2 top-2 bottom-2 px-4 ${buttonActiveClasses} rounded-[6px] disabled:opacity-20`}><ChevronRight size={20} /></button>
               </div>
             </div>
           )}
         </div>
-      </div>
     </div>
   );
 };

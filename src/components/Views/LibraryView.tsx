@@ -18,7 +18,7 @@ const LibraryView: React.FC<Props> = ({ stories, setCurrentStory, setView, delet
     <div className={`max-w-4xl mx-auto p-6 space-y-12 animate-in fade-in pb-24`}>
       <div className={`flex items-center justify-between border-b ${borderClasses} pb-8`}>
         <h1 className="text-4xl font-black font-bold uppercase">Library</h1>
-        <button onClick={() => setView(AppState.SETUP)} className={`flex items-center gap-1 border ${borderClasses} px-4 py-2 rounded-8 text-[10px] font-black uppercase transition-all ${buttonHoverClasses}`}>새 글 쓰기</button>
+        <button onClick={() => setView(AppState.SETUP)} className={`flex items-center gap-1 border ${borderClasses} px-4 py-2 rounded-8 text-[10px] font-black uppercase transition-all ${buttonHoverClasses}`}>new</button>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {stories.length === 0 ? (
