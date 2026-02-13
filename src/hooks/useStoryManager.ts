@@ -43,19 +43,12 @@ export const useStoryManager = (userId?: string) => {
       
       // [추가] 완결된 스토리의 경우, 내용이 변경되지 않았으면 중복 저장 방지
       if (existingStory && story.isCompleted) {
-        // 비교 로직: 에피소드 길이, 마지막 에피소드 내용, 해시태그
+        // 비교 로직: 에피소드 길이, 마지막 에피소드 내용,
         const isSameLength = existingStory.episodes.length === story.episodes.length;
         const lastEpExisting = existingStory.episodes[existingStory.episodes.length - 1];
         const lastEpCurrent = story.episodes[story.episodes.length - 1];
-        
-        // 마지막 에피소드의 내용이 같은지 확인
-        const isContentSame = lastEpExisting?.content === lastEpCurrent?.content;
-        
-        // 해시태그 배열 비교 (문자열로 변환하여 비교)
-        const hashtagsExisting = JSON.stringify(existingStory.hashtags || []);
-        const hashtagsCurrent = JSON.stringify(story.hashtags || []);
 
-        if (isSameLength && isContentSame && hashtagsExisting === hashtagsCurrent) {
+        if (isSameLength && lastEpExisting?.content === lastEpCurrent?.content) {
             alert(lang === 'kr' ? "이미 저장된 글입니다." : "This story is already saved.");
             return; // 저장하지 않고 종료
         }
