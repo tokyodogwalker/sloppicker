@@ -413,10 +413,11 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
           {loading && <Loader2 className="animate-spin" />} {language === 'kr' ? '연재 시작하기' : 'START WRITING'}
         </button>
       </section>
-      
+      <div className="h-10" />
 
       {/* Featured Stories (글공유) */}
       <section className={`mt-24 border-t ${borderClasses} pt-12`}>
+      <div className="h-10" />
         <div className="flex items-center justify-center gap-2 mb-8 opacity-60">
             <h3 className="text-center text-xs font-black uppercase tracking-[0.3em]">Sloptories</h3>
         </div>
