@@ -62,6 +62,8 @@ export interface Story {
   is_shared?: boolean;   // 공유 여부
   is_featured?: boolean; // 메인 노출 여부
   created_at?: string;
+
+  hashtags?: string[];
 }
 
 export interface Profile {

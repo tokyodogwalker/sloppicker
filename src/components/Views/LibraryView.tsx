@@ -7,13 +7,14 @@ interface Props {
   setCurrentStory: (s: Story) => void;
   setView: (v: AppState) => void;
   deleteFromLibrary: (id: string) => void;
+  shareStory: (story: Story) => void;
   theme: string;
   borderClasses: string;
   buttonActiveClasses: string;
   buttonHoverClasses: string;
 }
 
-const LibraryView: React.FC<Props> = ({ stories, setCurrentStory, setView, deleteFromLibrary, theme, borderClasses, buttonActiveClasses, buttonHoverClasses }) => {
+const LibraryView: React.FC<Props> = ({ stories, setCurrentStory, setView, shareStory, deleteFromLibrary, theme, borderClasses, buttonActiveClasses, buttonHoverClasses }) => {
   return (
     <div className={`max-w-4xl mx-auto p-6 space-y-12 animate-in fade-in pb-24`}>
       <div className={`flex items-center justify-between border-b ${borderClasses} pb-8`}>
@@ -27,7 +28,14 @@ const LibraryView: React.FC<Props> = ({ stories, setCurrentStory, setView, delet
           stories.map(story => (
             <div key={story.id} className={`border ${borderClasses} rounded-8 p-6 transition-all flex flex-col justify-between ${theme === 'dark' ? 'bg-zinc-900/50' : 'bg-white'}`}>
               <div><h3 className="text-lg font-black uppercase tracking-tight truncate w-full mb-1">{story.title}</h3><p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-4">{story.leftMember} x {story.rightMember}</p></div>
-              <div className="flex gap-2"><button onClick={() => { setCurrentStory(story); setView(AppState.WRITING); }} className={`flex-1 ${buttonActiveClasses} py-3 rounded-[6px] text-[10px] font-black uppercase transition-all hover:opacity-80`}>Read Archive</button><button onClick={() => deleteFromLibrary(story.id)} className={`p-3 border ${borderClasses} rounded-[6px] text-gray-400 hover:text-red-500 transition-all`}><Trash2 size={16} /></button></div>
+              <div className="flex gap-2"><button onClick={() => { setCurrentStory(story); setView(AppState.WRITING); }} className={`flex-1 ${buttonActiveClasses} py-3 rounded-[6px] text-[10px] font-black uppercase transition-all hover:opacity-80`}>Read Archive</button>
+              
+              {story.isCompleted && (
+                    <button onClick={() => shareStory(story)} className={`p-3 border ${borderClasses} rounded-[6px] text-gray-400 hover:text-blue-500 transition-all`} title="Share to Sloptories">
+                    </button>
+                  )}
+
+              <button onClick={() => deleteFromLibrary(story.id)} className={`p-3 border ${borderClasses} rounded-[6px] text-gray-400 hover:text-red-500 transition-all`}><Trash2 size={16} /></button></div>
             </div>
           ))
         )}

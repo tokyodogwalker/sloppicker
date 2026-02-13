@@ -24,9 +24,30 @@ export const generateEpisode = async (
   story: Story,
   userInput: string,
   currentEpisodeNum: number
-): Promise<{ content: string; suggestions: string[]; storyTitle?: string }> => {
+): Promise<{ content: string; suggestions: string[]; storyTitle?: string; hashtags?: string[]; }> => {
   const isFirstEpisode = currentEpisodeNum === 1;
+  const isLastEpisode = currentEpisodeNum === story.totalEpisodes;
+  const isMajorEpisode = isFirstEpisode || isLastEpisode || (currentEpisodeNum % 5 === 0);
+
   const safeUserInput = `<user_action>${userInput}</user_action>`;
+
+  const modelName = isMajorEpisode ? "gemini-2.5-flash" : "gemini-2.5-flash-lite";
+
+  let narrativeStageInstruction = "";
+  const progress = currentEpisodeNum / story.totalEpisodes;
+
+  if (isFirstEpisode) {
+    narrativeStageInstruction = "Stage: [Introduction]. Establish the setting, characters, and the initial incident. Hook the reader immediately.";
+  } else if (isLastEpisode) {
+    narrativeStageInstruction = "Stage: [Conclusion/Resolution]. Bring all conflicts to a close. Provide a satisfying emotional payoff or a lingering ending.";
+  } else if (progress < 0.4) {
+    narrativeStageInstruction = "Stage: [Rising Action]. Develop the relationships and introduce minor conflicts or events that build tension.";
+  } else if (progress < 0.8) {
+    narrativeStageInstruction = "Stage: [Crisis]. Deepen the conflict. The characters should face emotional or external hurdles.";
+  } else {
+    // 80% 이상 ~ 마지막 전
+    narrativeStageInstruction = "Stage: [Climax/Cliffhanger]. The tension reaches its peak. Prepare for the final resolution. End with a strong emotional beat or cliffhanger.";
+  }
 
   const baseGuidelines = `
     You are Sloppicker, a top-tier K-pop fanfiction writer renowned for deep emotional insight and vivid sensory descriptions.
@@ -39,7 +60,8 @@ export const generateEpisode = async (
    5. NEXT STEPS: Provide exactly 3 diverse plot suggestions for the next chapter.
    6. NATURAL DIALOGUE: Use Korean nuances perfectly. Do not overuse titles/honorifics if they are close.
    7. FORMATTING: Use double newline characters (\\n\\n) for paragraph breaks. No HTML.
-  
+   8. NARRATIVE STRUCTURE: Follow the requested '${narrativeStageInstruction}' strictly.
+
     [TONE & STYLE - CRITICAL]
    - NARRATION: You MUST use Korean Plain Form (Haera-che, ~ㄴ다, ~다) for all narration and descriptions. NEVER use polite forms (~니다, ~요) in the narrative text.
    - DIALOGUE: Characters should speak naturally based on their relationship (honorifics or casual speech).
@@ -68,9 +90,11 @@ export const generateEpisode = async (
     - Theme/Prompt (Ssul): "${story.theme}"
     - Current Episode: ${currentEpisodeNum} / ${story.totalEpisodes}
     - Language: ${story.language === 'en' ? 'English' : 'Korean'}
+    - ${narrativeStageInstruction}
 
     ${isFirstEpisode ? "\n[SPECIAL TASK] Generate a poetic and captivating title for this story based on the theme in the JSON response." : ""}
-  `;
+    ${isLastEpisode ? "\n[SPECIAL TASK] Generate 3 hashtags (#Keyword) that summarize this entire story's mood and theme." : ""}
+    `;
 
   const previousContext = story.episodes
     .map((ep) => `[Chapter ${ep.episodeNumber}]\n${ep.content.substring(Math.max(0, ep.content.length - 1000))}`)

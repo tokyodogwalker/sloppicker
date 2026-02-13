@@ -16,9 +16,10 @@ interface Props {
   buttonActiveClasses: string;
   buttonHoverClasses: string;
   language: 'kr' | 'en';
+  hashtags?: string[];
 }
 
-const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, setLoading, saveToLibrary, theme, setView, borderClasses, buttonActiveClasses, buttonHoverClasses, language }) => {
+const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, setLoading, saveToLibrary, theme, setView, borderClasses, buttonActiveClasses, buttonHoverClasses, language, }) => {
   const scrollAnchorRef = useRef<HTMLDivElement>(null);
   const [customInput, setCustomInput] = React.useState('');
   const lastEp = currentStory.episodes[currentStory.episodes.length - 1];
@@ -28,9 +29,11 @@ const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, 
     try {
       const nextEpNum = currentStory.episodes.length + 1;
       const nextEp = await generateEpisode(currentStory, choice, nextEpNum);
-      const updated = { ...currentStory, episodes: [...currentStory.episodes, { episodeNumber: nextEpNum, content: nextEp.content, suggestions: nextEp.suggestions, userChoice: choice }], isCompleted: nextEpNum >= currentStory.totalEpisodes };
+      const updated = { ...currentStory, episodes: [...currentStory.episodes, { episodeNumber: nextEpNum, content: nextEp.content, suggestions: nextEp.suggestions, userChoice: choice }], isCompleted: nextEpNum >= currentStory.totalEpisodes, hashtags: nextEp.hashtags };
       setCurrentStory(updated);
       setCustomInput('');
+
+    
       setTimeout(() => {
         scrollAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
@@ -77,6 +80,32 @@ const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, 
               </div>
             ))}
           </div>
+          
+          {/* 완결 시 표시되는 Footer UI */}
+          {currentStory.isCompleted && (
+             <div className="max-w-2xl mx-auto text-center py-16 space-y-8 animate-in zoom-in-50 duration-500">
+                <div className="space-y-4">
+                    <p className="text-3xl font-serif font-black tracking-[0.5em] opacity-80">- FIN -</p>
+                    {currentStory.hashtags && (
+                        <div className="flex flex-wrap justify-center gap-2">
+                            {currentStory.hashtags.map((tag, i) => (
+                                <span key={i} className={`px-3 py-1 rounded-full text-xs font-bold border ${borderClasses} opacity-60`}>
+                                    #{tag.replace('#', '')}
+                                </span>
+                            ))}
+                        </div>
+                    )}
+                </div>
+                
+                <button 
+                    onClick={() => saveToLibrary(currentStory, language)} 
+                    className={`px-8 py-4 ${buttonActiveClasses} rounded-full font-bold text-sm shadow-lg hover:scale-105 transition-transform flex items-center justify-center gap-2 mx-auto`}
+                >
+                    {language === 'kr' ? '내 서재에 저장' : 'Save to Library'}
+                </button>
+             </div>
+          )}
+
 
           {loading && (
             <div className="max-w-2xl mx-auto py-8 flex flex-col items-center gap-4">
@@ -88,11 +117,7 @@ const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, 
           {!currentStory.isCompleted && !loading && (
             <div className={`max-w-2xl mx-auto pt-32 border-t ${borderClasses} space-y-12`}>
               <AdPlaceholder theme={theme} borderClasses={borderClasses} />
-              <div className="flex justify-center">
-                  <button onClick={() => saveToLibrary(currentStory, language)} className={`border ${borderClasses} px-5 py-2 rounded-8 text-xs font-black uppercase flex items-center gap-2 ${theme === 'dark' ? 'bg-zinc-900' : 'bg-white'}`}>
-                    {language === 'kr' ? '내 서재에 저장' : 'Save to Library'}
-                  </button>
-              </div>
+              
               <div className="space-y-6">
                 <h4 className="text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Next Selection</h4>
                 <div className="space-y-2">

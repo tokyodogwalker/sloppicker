@@ -44,20 +44,21 @@ export const useStoryManager = (userId?: string) => {
   // 2. 저장하기
   const saveToLibrary = async (story: Story, lang: 'kr' | 'en' = 'kr') => {
     if (userId) {
-      if (stories.length >= 10) {
+      const isNew = !stories.some(s => s.id === story.id);
+      if (isNew && stories.length >= 10) {
         alert(lang === 'kr' ? "서재가 가득 찼습니다! (최대 10개)" : "Library is full! (Max 10)");
         return;
       }
 
       const { id, ...storyData } = story; 
-      const { error } = await supabase.from('stories').insert([
+      const { error } = await supabase.from('stories').upsert([
         { 
           ...storyData, 
           user_id: userId, 
           is_shared: false, 
           is_featured: false 
         }
-      ]);
+      ], { onConflict: 'id' });
 
       if (error) {
         console.error(error);
@@ -68,6 +69,7 @@ export const useStoryManager = (userId?: string) => {
       }
 
     } else {
+      // 비로그인 - LocalStorage
       const currentStories = JSON.parse(localStorage.getItem('spk_stories') || '[]');
       const existingIdx = currentStories.findIndex((s: Story) => s.id === story.id);
       
@@ -101,10 +103,15 @@ export const useStoryManager = (userId?: string) => {
   };
 
   // 4. 공유하기
-  const shareStory = async (storyId: string, lang: 'kr' | 'en' = 'kr') => {
+  const shareStory = async (story: Story, lang: 'kr' | 'en' = 'kr') => {
     if (!userId) {
       alert(lang === 'kr' ? "공유 기능은 로그인 후 사용할 수 있습니다." : "Please login to share.");
       return;
+    }
+
+    if (!story.isCompleted) {
+        alert(lang === 'kr' ? "완결된 이야기만 공유할 수 있습니다." : "Only completed stories can be shared.");
+        return;
     }
 
     if (!confirm(lang === 'kr' ? "운영자에게 제출하시겠습니까? (검토 후 메인에 공개됩니다)" : "Submit to admin?")) return;
@@ -125,7 +132,7 @@ export const useStoryManager = (userId?: string) => {
     const { error } = await supabase
       .from('stories')
       .update({ is_shared: true, author_name: finalName })
-      .eq('id', storyId);
+      .eq('id', story);
 
     if (!error) {
       alert(lang === 'kr' ? "제출되었습니다!" : "Submitted successfully!");
