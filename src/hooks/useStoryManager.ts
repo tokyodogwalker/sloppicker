@@ -127,7 +127,6 @@ export const useStoryManager = (userId?: string) => {
 
     if (useNickname) finalName = nickname;
 
-    // [수정] story 객체가 아니라 story.id를 전달해야 함
     const { error } = await supabase
       .from('stories')
       .update({ is_shared: true, author_name: finalName })

@@ -67,7 +67,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
   const [themeInput, setThemeInput] = useState('');
   const [episodeLimit, setEpisodeLimit] = useState(10);
 
-  // [추가] 큐레이션(Featured) 관련 State
+  // [추가] 큐레이션State
   const [featuredStories, setFeaturedStories] = useState<Story[]>([]);
   const [page, setPage] = useState(0);
   const ITEMS_PER_PAGE = 9; //9개씩 로드
