@@ -61,6 +61,7 @@ export const generateEpisode = async (
    6. NATURAL DIALOGUE: Use Korean nuances perfectly. Do not overuse titles/honorifics if they are close.
    7. FORMATTING: Use double newline characters (\\n\\n) for paragraph breaks. No HTML.
    8. NARRATIVE STRUCTURE: Follow the requested '${narrativeStageInstruction}' strictly.
+   9. [CRITICAL] NO REPETITION: Do NOT summarize, repeat, or rephrase the events from the 'Previous Story Context'. Start the new narrative IMMEDIATELY after the last sentence of the previous context. 
 
     [TONE & STYLE - CRITICAL]
    - NARRATION: You MUST use Korean Plain Form (Haera-che, ~ㄴ다, ~다) for all narration and descriptions. NEVER use polite forms (~니다, ~요) in the narrative text.
