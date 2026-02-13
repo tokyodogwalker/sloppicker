@@ -456,7 +456,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
 
                     {/* Hover 시 '읽어보기' 표시 */}
                     <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-20 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
-                        <span className="bg-white text-black border border-black px-4 py-2 rounded-full text-xs font-bold shadow-sm">READ NOW</span>
+                        <span className="bg-white text-black border border-black px-4 py-2 rounded-full text-xs font-bold shadow-sm"></span>
                     </div>
                     </div>
                 ))}
@@ -466,7 +466,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
                 <div className="text-center mt-12">
                 <button 
                     onClick={() => { const nextPage = page + 1; setPage(nextPage); loadFeatured(nextPage); }}
-                    className={`px-8 py-3 border border-dashed ${borderClasses} rounded-full text-xs font-bold hover:bg-gray-100 dark:hover:bg-zinc-900 transition-all opacity-50 hover:opacity-10`}
+                    className={`px-8 py-3 border border-dashed ${borderClasses} rounded-full text-xs font-bold hover:bg-gray-100 dark:hover:bg-zinc-900 transition-all opacity-50 hover:opacity-100`}
                 >
                     LOAD MORE
                 </button>

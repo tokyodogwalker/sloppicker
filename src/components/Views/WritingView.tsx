@@ -85,7 +85,7 @@ const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, 
           {currentStory.isCompleted && (
              <div className="max-w-2xl mx-auto text-center py-16 space-y-8 animate-in zoom-in-50 duration-500">
                 <div className="space-y-4">
-                    <p className="text-2xl font-black tracking-[0.5em] opacity-80">- FIN -</p>
+                    <p className="text-xl font-serif tracking-[0.5em] opacity-80">FIN.</p>
                     {currentStory.hashtags && (
                         <div className="flex flex-wrap justify-center gap-3">
                             {currentStory.hashtags.map((tag, i) => (
@@ -99,7 +99,7 @@ const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, 
                 
                 <button 
                     onClick={() => saveToLibrary(currentStory, language)} 
-                    className={`px-3 py-2 ${buttonActiveClasses} rounded-full font-bold text-sm shadow-lg hover:scale-105 transition-transform flex items-center justify-center gap-2 mx-auto`}
+                    className={`px-3 py-2 ${buttonActiveClasses} rounded-full text-sm shadow-lg hover:scale-105 transition-transform flex items-center justify-center gap-2 mx-auto`}
                 >
                     {language === 'kr' ? '내 서재에 저장' : 'Save to Library'}
                 </button>

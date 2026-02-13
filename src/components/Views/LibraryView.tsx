@@ -30,7 +30,13 @@ const LibraryView: React.FC<Props> = ({ stories, setCurrentStory, setView, share
               <div>
                   <div className="flex justify-between items-start mb-1">
                     <h3 className="text-lg font-black uppercase tracking-tight truncate w-full">{story.title}</h3>
-                    {story.isCompleted && <span className="text-[10px] font-bold bg-green-100 text-green-800 px-2 py-0.5 rounded-full dark:bg-green-900 dark:text-green-100 whitespace-nowrap ml-2">FIN</span>}
+                    {story.isCompleted ? (
+                        <span className="text-[10px] font-bold bg-green-100 text-green-800 px-2 py-0.5 rounded-full dark:bg-green-900 dark:text-green-100 whitespace-nowrap ml-2">FIN</span>
+                    ) : (
+                        <span className="text-[10px] font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full dark:bg-zinc-800 dark:text-zinc-400 whitespace-nowrap ml-2">
+                            {story.episodes.length} / {story.totalEpisodes}
+                        </span>
+                    )}
                   </div>
                   <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-4">{story.leftMember} x {story.rightMember}</p>
               </div>
