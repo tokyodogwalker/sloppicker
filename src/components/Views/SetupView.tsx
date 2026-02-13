@@ -482,12 +482,10 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
                 </div>
 
                 {/* 더보기 버튼 */}
-                <div className="text-center mt-12">
+                <div className="text-center text-xs font-bold">
                 <button 
                     onClick={() => { const nextPage = page + 1; setPage(nextPage); loadFeatured(nextPage); }}
-                    className={`px-8 py-3 border border-dashed ${borderClasses} hover:bg-gray-100 dark:hover:bg-zinc-900 transition-all opacity-50 hover:opacity-20`}
-                >
-                    LOAD MORE
+                    className={`px-5 py-3 border-dashed ${borderClasses} hover:bg-gray-100 dark:hover:bg-zinc-900 transition-all opacity-50 hover:opacity-20`}>LOAD MORE
                 </button>
                 </div>
             </>
