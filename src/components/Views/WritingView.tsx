@@ -117,7 +117,11 @@ const WritingView: React.FC<Props> = ({ currentStory, setCurrentStory, loading, 
           {!currentStory.isCompleted && !loading && (
             <div className={`max-w-2xl mx-auto pt-32 border-t ${borderClasses} space-y-12`}>
               <AdPlaceholder theme={theme} borderClasses={borderClasses} />
-              
+              <div className="flex justify-center">
+                  <button onClick={() => saveToLibrary(currentStory, language)} className={`border ${borderClasses} px-5 py-2 rounded-8 text-xs font-black uppercase flex items-center gap-2 ${theme === 'dark' ? 'bg-zinc-900' : 'bg-white'}`}>
+                    {language === 'kr' ? '내 서재에 저장' : 'Save to Library'}
+                  </button>
+              </div>
               <div className="space-y-6">
                 <h4 className="text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Next Selection</h4>
                 <div className="space-y-2">
