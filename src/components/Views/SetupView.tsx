@@ -465,9 +465,9 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
                 <div className="text-center mt-12">
                 <button 
                     onClick={() => { const nextPage = page + 1; setPage(nextPage); loadFeatured(nextPage); }}
-                    className={`px-8 py-3 border border-dashed ${borderClasses} rounded-full text-xs font-bold hover:bg-gray-100 dark:hover:bg-zinc-900 transition-all opacity-50 hover:opacity-100`}
+                    className={`px-8 py-3 border border-dashed ${borderClasses} rounded-full text-xs font-bold hover:bg-gray-100 dark:hover:bg-zinc-900 transition-all opacity-50 hover:opacity-10`}
                 >
-                    LOAD MORE (+9)
+                    LOAD MORE
                 </button>
                 </div>
             </>

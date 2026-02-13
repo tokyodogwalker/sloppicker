@@ -1,6 +1,6 @@
 import React from 'react';
 import { Story, AppState } from '../../../types';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Share2 } from 'lucide-react'; // [수정] Share2 import 추가
 
 interface Props {
   stories: Story[];
@@ -27,15 +27,26 @@ const LibraryView: React.FC<Props> = ({ stories, setCurrentStory, setView, share
         ) : (
           stories.map(story => (
             <div key={story.id} className={`border ${borderClasses} rounded-8 p-6 transition-all flex flex-col justify-between ${theme === 'dark' ? 'bg-zinc-900/50' : 'bg-white'}`}>
-              <div><h3 className="text-lg font-black uppercase tracking-tight truncate w-full mb-1">{story.title}</h3><p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-4">{story.leftMember} x {story.rightMember}</p></div>
-              <div className="flex gap-2"><button onClick={() => { setCurrentStory(story); setView(AppState.WRITING); }} className={`flex-1 ${buttonActiveClasses} py-3 rounded-[6px] text-[10px] font-black uppercase transition-all hover:opacity-80`}>Read Archive</button>
+              <div>
+                  <div className="flex justify-between items-start mb-1">
+                    <h3 className="text-lg font-black uppercase tracking-tight truncate w-full">{story.title}</h3>
+                    {story.isCompleted && <span className="text-[10px] font-bold bg-green-100 text-green-800 px-2 py-0.5 rounded-full dark:bg-green-900 dark:text-green-100 whitespace-nowrap ml-2">FIN</span>}
+                  </div>
+                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-4">{story.leftMember} x {story.rightMember}</p>
+              </div>
               
-              {story.isCompleted && (
+              <div className="flex gap-2">
+                  <button onClick={() => { setCurrentStory(story); setView(AppState.WRITING); }} className={`flex-1 ${buttonActiveClasses} py-3 rounded-[6px] text-[10px] font-black uppercase transition-all hover:opacity-80`}>Read Archive</button>
+              
+                  {/* [수정] 공유 버튼에 아이콘 추가 */}
+                  {story.isCompleted && (
                     <button onClick={() => shareStory(story)} className={`p-3 border ${borderClasses} rounded-[6px] text-gray-400 hover:text-blue-500 transition-all`} title="Share to Sloptories">
+                        <Share2 size={16} />
                     </button>
                   )}
 
-              <button onClick={() => deleteFromLibrary(story.id)} className={`p-3 border ${borderClasses} rounded-[6px] text-gray-400 hover:text-red-500 transition-all`}><Trash2 size={16} /></button></div>
+                  <button onClick={() => deleteFromLibrary(story.id)} className={`p-3 border ${borderClasses} rounded-[6px] text-gray-400 hover:text-red-500 transition-all`}><Trash2 size={16} /></button>
+              </div>
             </div>
           ))
         )}

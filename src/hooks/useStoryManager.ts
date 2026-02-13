@@ -5,16 +5,11 @@ import { Story } from '../../types';
 export const useStoryManager = (userId?: string) => {
   const [stories, setStories] = useState<Story[]>([]);
   const [loading, setLoading] = useState(false);
-  // [추가] App.tsx에서 필요한 state 복구
   const [currentStory, setCurrentStory] = useState<Story | null>(null);
 
   // 1. 스토리 불러오기
   const fetchStories = async () => {
-    // 로딩 상태는 외부 제어가 가능하도록 두되, fetch 시에는 내부적으로 관리하지 않음 (App.tsx의 loading 사용 권장)
-    // 필요하다면 여기서 setLoading(true) 사용 가능
-    
     if (userId) {
-      // [로그인] Supabase
       const { data, error } = await supabase
         .from('stories')
         .select('*')
@@ -27,7 +22,6 @@ export const useStoryManager = (userId?: string) => {
         console.error("Supabase load error:", error);
       }
     } else {
-      // [비로그인] LocalStorage
       const saved = localStorage.getItem('spk_stories');
       if (saved) {
         setStories(JSON.parse(saved));
@@ -44,32 +38,34 @@ export const useStoryManager = (userId?: string) => {
   // 2. 저장하기
   const saveToLibrary = async (story: Story, lang: 'kr' | 'en' = 'kr') => {
     if (userId) {
-      const isNew = !stories.some(s => s.id === story.id);
-      if (isNew && stories.length >= 10) {
+      // 이미 존재하는 ID인지 확인 (클라이언트 상태 기준)
+      const existingStory = stories.find(s => s.id === story.id);
+      
+      // 새 글인 경우에만 개수 제한 체크
+      if (!existingStory && stories.length >= 10) {
         alert(lang === 'kr' ? "서재가 가득 찼습니다! (최대 10개)" : "Library is full! (Max 10)");
         return;
       }
 
-      const { id, ...storyData } = story; 
+      // [수정] Upsert 시 id가 일치하면 무조건 업데이트됩니다.
       const { error } = await supabase.from('stories').upsert([
         { 
-          ...storyData, 
-          user_id: userId, 
-          is_shared: false, 
-          is_featured: false 
+          ...story,
+          user_id: userId,
+          // 기존 필드들 업데이트
         }
       ], { onConflict: 'id' });
 
       if (error) {
-        console.error(error);
+        console.error("Save Error:", error);
         alert(lang === 'kr' ? "저장 중 오류가 발생했습니다." : "Error saving story.");
       } else {
-        alert(lang === 'kr' ? "서재에 안전하게 저장되었습니다." : "Saved to cloud library.");
-        fetchStories();
+        // alert(lang === 'kr' ? "저장되었습니다." : "Saved.");
+        fetchStories(); // 목록 갱신
       }
 
     } else {
-      // 비로그인 - LocalStorage
+      // LocalStorage 저장
       const currentStories = JSON.parse(localStorage.getItem('spk_stories') || '[]');
       const existingIdx = currentStories.findIndex((s: Story) => s.id === story.id);
       
@@ -83,7 +79,7 @@ export const useStoryManager = (userId?: string) => {
     }
   };
 
-  // 3. 삭제하기 (App.tsx에서는 deleteFromLibrary라는 이름으로 사용 중)
+  // 3. 삭제하기
   const deleteFromLibrary = async (storyId: string, lang: 'kr' | 'en' = 'kr') => {
     if (!confirm(lang === 'kr' ? "정말 삭제하시겠습니까?" : "Are you sure?")) return;
 
@@ -114,9 +110,11 @@ export const useStoryManager = (userId?: string) => {
         return;
     }
 
+    // 공유 전 자동 저장
+    await saveToLibrary(story, lang);
+
     if (!confirm(lang === 'kr' ? "운영자에게 제출하시겠습니까? (검토 후 메인에 공개됩니다)" : "Submit to admin?")) return;
     
-    // 닉네임 사용 여부 확인
     let finalName = '익명';
     const { data: { user } } = await supabase.auth.getUser();
     const nickname = user?.user_metadata?.full_name || user?.user_metadata?.name || 'User';
@@ -129,18 +127,18 @@ export const useStoryManager = (userId?: string) => {
 
     if (useNickname) finalName = nickname;
 
+    // [수정] story 객체가 아니라 story.id를 전달해야 함
     const { error } = await supabase
       .from('stories')
       .update({ is_shared: true, author_name: finalName })
-      .eq('id', story);
+      .eq('id', story.id); 
 
     if (!error) {
       alert(lang === 'kr' ? "제출되었습니다!" : "Submitted successfully!");
       fetchStories();
-
     } else {
-      console.error(error);
-      alert("공유 실패");
+      console.error("Share Error:", error);
+      alert("공유 실패: 잠시 후 다시 시도해주세요.");
     }
   };
   

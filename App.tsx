@@ -11,16 +11,13 @@ import { supabase } from './src/supabaseClient';
 const App: React.FC = () => {
   const { theme, setTheme, language, setLanguage } = useAppConfig();
   
-  // [추가] 유저 세션(로그인 상태) 관리
   const [session, setSession] = useState<any>(null);
 
   useEffect(() => {
-    // 초기 세션 확인
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
     });
 
-    // 세션 변경 감지 (로그인/로그아웃)
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -30,8 +27,7 @@ const App: React.FC = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // [수정] 로그인 시 userId를 useStoryManager에 전달 (내 서재 연동)
-  const { stories, currentStory, setCurrentStory, loading, setLoading, saveToLibrary, deleteFromLibrary } = useStoryManager(session?.user?.id);
+  const { stories, currentStory, setCurrentStory, loading, setLoading, saveToLibrary, deleteFromLibrary, shareStory } = useStoryManager(session?.user?.id);
   
   const [view, setView] = useState<AppState>(AppState.SETUP);
 
@@ -39,7 +35,6 @@ const App: React.FC = () => {
   const buttonActiveClasses = theme === 'dark' ? 'bg-zinc-100 text-zinc-950' : 'bg-black text-white';
   const buttonHoverClasses = theme === 'dark' ? 'hover:bg-zinc-900' : 'hover:bg-gray-100';
 
-  // [추가] 로그인 핸들러
   const handleLogin = async () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'x',
@@ -48,10 +43,8 @@ const App: React.FC = () => {
     if (error) alert(error.message);
   };
 
-  // [추가] 로그아웃 핸들러
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    // alert(language === 'kr' ? "로그아웃 되었습니다." : "Logged out.");
   };
 
   return (
@@ -95,6 +88,7 @@ const App: React.FC = () => {
                 setCurrentStory={setCurrentStory} 
                 setView={setView} 
                 deleteFromLibrary={deleteFromLibrary} 
+                shareStory={shareStory}  // [수정] shareStory 전달 추가
                 theme={theme} 
                 borderClasses={borderClasses} 
                 buttonActiveClasses={buttonActiveClasses} 
