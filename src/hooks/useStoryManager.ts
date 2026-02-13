@@ -41,6 +41,26 @@ export const useStoryManager = (userId?: string) => {
       // 이미 존재하는 ID인지 확인 (클라이언트 상태 기준)
       const existingStory = stories.find(s => s.id === story.id);
       
+      // [추가] 완결된 스토리의 경우, 내용이 변경되지 않았으면 중복 저장 방지
+      if (existingStory && story.isCompleted) {
+        // 비교 로직: 에피소드 길이, 마지막 에피소드 내용, 해시태그
+        const isSameLength = existingStory.episodes.length === story.episodes.length;
+        const lastEpExisting = existingStory.episodes[existingStory.episodes.length - 1];
+        const lastEpCurrent = story.episodes[story.episodes.length - 1];
+        
+        // 마지막 에피소드의 내용이 같은지 확인
+        const isContentSame = lastEpExisting?.content === lastEpCurrent?.content;
+        
+        // 해시태그 배열 비교 (문자열로 변환하여 비교)
+        const hashtagsExisting = JSON.stringify(existingStory.hashtags || []);
+        const hashtagsCurrent = JSON.stringify(story.hashtags || []);
+
+        if (isSameLength && isContentSame && hashtagsExisting === hashtagsCurrent) {
+            alert(lang === 'kr' ? "이미 저장된 글입니다." : "This story is already saved.");
+            return; // 저장하지 않고 종료
+        }
+      }
+
       // 새 글인 경우에만 개수 제한 체크
       if (!existingStory && stories.length >= 10) {
         alert(lang === 'kr' ? "서재가 가득 찼습니다! (최대 10개)" : "Library is full! (Max 10)");
@@ -60,7 +80,7 @@ export const useStoryManager = (userId?: string) => {
         console.error("Save Error:", error);
         alert(lang === 'kr' ? "저장 중 오류가 발생했습니다." : "Error saving story.");
       } else {
-        // alert(lang === 'kr' ? "저장되었습니다." : "Saved.");
+        alert(lang === 'kr' ? "서재에 저장되었습니다." : "Saved.");
         fetchStories(); // 목록 갱신
       }
 
@@ -113,7 +133,7 @@ export const useStoryManager = (userId?: string) => {
     // 공유 전 자동 저장
     await saveToLibrary(story, lang);
 
-    if (!confirm(lang === 'kr' ? "운영자에게 제출하시겠습니까? (검토 후 메인에 공개됩니다)" : "Submit to admin?")) return;
+    if (!confirm(lang === 'kr' ? "메인에 공유하시겠습니까? (검토 후 메인에 공개됩니다)" : "Submit to admin?")) return;
     
     let finalName = '익명';
     const { data: { user } } = await supabase.auth.getUser();
@@ -137,7 +157,7 @@ export const useStoryManager = (userId?: string) => {
       fetchStories();
     } else {
       console.error("Share Error:", error);
-      alert("공유 실패: 잠시 후 다시 시도해주세요.");
+      alert(lang === 'kr' ? "공유 실패: 잠시 후 다시 시도해주세요." : "Failed to share. Please try again later.");
     }
   };
   
