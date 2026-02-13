@@ -40,7 +40,7 @@ interface Props {
 const MAX_NAME_VJ = 20; // 이름/그룹명 최대 길이
 const MAX_THEME_VJ = 200; // 주제(썰) 최대 길이
 
-const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading, setCurrentStory, setView, borderClasses, buttonActiveClasses, buttonHoverClasses, session, onLogin, onLogout}) => {
+const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading, setCurrentStory, setView, borderClasses, buttonActiveClasses, buttonHoverClasses, session, onLogin, onLogout, theme}) => {
   // 1. 왼쪽 멤버 입력 상태
   const [leftGroupInput, setLeftGroupInput] = useState('');
   const [leftMemberInput, setLeftMemberInput] = useState('');
@@ -424,49 +424,68 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
         {featuredStories.length > 0 ? (
             <>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {featuredStories.map((story) => (
+                  {featuredStories.map((story) => (
                     <div 
-                    key={story.id} 
-                    onClick={() => { setCurrentStory(story); setView(AppState.WRITING); }}
-                    className={`border ${borderClasses} rounded-8 p-6 cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-900 transition-all relative overflow-hidden group h-[320px]`}
+                      key={story.id} 
+                      onClick={() => { setCurrentStory(story); setView(AppState.WRITING); }}
+                      className={`border ${borderClasses} rounded-8 p-6 cursor-pointer transition-all relative overflow-hidden group h-[320px] ${
+                          theme === 'dark' ? 'hover:bg-zinc-900' : 'hover:bg-gray-50'
+                      }`}
                     >
-                    {/* 제목 & 장르 */}
-                    <div className="mb-4">
-                        <span className="text-[10px] font-bold border border-current opacity-40 px-2 py-1 rounded-full mb-2 inline-block">
-                        {story.genre}
-                        </span>
-                        {/* [추가] 작성자 이름 표시 (우측 상단) */}
-                        <span className="text-[10px] font-medium opacity-50 flex items-center gap-1">
-                        by. {story.author_name || '익명'}
-                        </span>
-                        <h4 className="font-bold text-lg leading-tight truncate mb-1">
-                          {story.title}
-                        </h4>
-                        <span className="text-xs opacity-60 block">
-                            [{story.leftMember} X {story.rightMember}]
-                        </span>
-                    </div>
+                      {/* 제목 & 장르 */}
+                      <div className="mb-4">
+                          <span className="text-[10px] font-bold border border-current opacity-40 px-2 py-1 rounded-full mb-2 inline-block">
+                          {story.genre}
+                          </span>
+                          <span className="text-[10px] font-medium opacity-50 flex items-center gap-1 float-right">
+                          by. {story.author_name || '익명'}
+                          </span>
+                          <h4 className="font-bold text-lg leading-tight truncate mb-1">
+                            {story.title}
+                          </h4>
+                          <span className="text-xs opacity-60 block">
+                              [{story.leftMember} X {story.rightMember}]
+                          </span>
+                      </div>
 
-                    {/* 본문 미리보기 */}
-                    <div className="text-sm leading-relaxed opacity-80 font-serif relative h-[160px] overflow-hidden">
-                      {story.episodes?.[0]?.content}
-                      {/* from-transparent 대신 색상/0 사용 */}
-                      <div className={`absolute inset-0 bg-gradient-to-b from-white/0 via-white/0 to-white dark:from-zinc-950/0 dark:via-zinc-950/0 dark:to-zinc-950 pointer-events-none`} />
-                    </div>
+                      {/* 본문 미리보기 */}
+                      <div className="text-sm leading-relaxed opacity-80 font-serif relative h-[160px] overflow-hidden">
+                        {story.episodes?.[0]?.content}
+                        
+                        {/* [수정 핵심] 
+                          1. Tailwind 'dark:' 대신 theme prop을 직접 확인하여 클래스를 적용합니다. (App View 호환성 해결)
+                          2. from-transparent 대신 시작점과 끝점의 색상 코드를 일치시키고 Opacity만 조절합니다. (WebView 검은띠 해결)
+                        */}
+                        <div 
+                          className="absolute inset-0 pointer-events-none"
+                          style={{
+                              background: theme === 'dark'
+                                  ? 'linear-gradient(to bottom, rgba(9,9,11,0) 0%, rgba(9,9,11,1) 100%)' // Zinc-950
+                                  : 'linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%)' // White
+                          }}
+                        />
+                      </div>
 
-                    {/* Hover 시 '읽어보기' 표시 */}
-                    <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-20 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
-                        <span className="bg-white text-black border border-black px-4 py-2 rounded-full text-xs font-bold shadow-sm"></span>
+                      {/* Hover 시 '읽어보기' 표시 */}
+                      {/* [수정] 다크모드에서는 흰색 오버레이, 라이트모드에서는 검은색 오버레이를 씌워 가시성 확보 */}
+                      <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[1px] ${
+                          theme === 'dark' ? 'bg-white/10' : 'bg-black/5'
+                      }`}>
+                          <span className={`px-4 py-2 rounded-full text-xs font-bold shadow-sm border ${
+                              theme === 'dark' ? 'bg-zinc-800 text-white border-zinc-700' : 'bg-white text-black border-black'
+                          }`}>
+                              READ NOW
+                          </span>
+                      </div>
                     </div>
-                    </div>
-                ))}
+                  ))}
                 </div>
 
                 {/* 더보기 버튼 */}
                 <div className="text-center mt-12">
                 <button 
                     onClick={() => { const nextPage = page + 1; setPage(nextPage); loadFeatured(nextPage); }}
-                    className={`px-8 py-3 border border-dashed ${borderClasses} rounded-full text-xs font-bold hover:bg-gray-100 dark:hover:bg-zinc-900 transition-all opacity-50 hover:opacity-100`}
+                    className={`px-8 py-3 border border-dashed ${borderClasses} hover:bg-gray-100 dark:hover:bg-zinc-900 transition-all opacity-50 hover:opacity-20`}
                 >
                     LOAD MORE
                 </button>
