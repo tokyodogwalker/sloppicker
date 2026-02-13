@@ -88,7 +88,7 @@ export const useStoryManager = (userId?: string) => {
         title: story.title || (lang === 'kr' ? "무제" : "Untitled"), // 빈 제목 방지
         episodes: story.episodes || [], // 배열 보장
         hashtags: story.hashtags || [], // 배열 보장
-        is_completed: story.isCompleted || false, // CamelCase -> snake_case 변환 주의
+        isCompleted: story.isCompleted || false,
         updated_at: new Date().toISOString()
       };
 
