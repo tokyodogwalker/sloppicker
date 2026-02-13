@@ -415,7 +415,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
       </section>
       
 
-      {/* [추가] Featured Stories (글공유) */}
+      {/* Featured Stories (글공유) */}
       <section className={`mt-24 border-t ${borderClasses} pt-12`}>
         <div className="flex items-center justify-center gap-2 mb-8 opacity-60">
             <h3 className="text-center text-xs font-black uppercase tracking-[0.3em]">Sloptories</h3>
@@ -447,14 +447,15 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
                         </span>
                     </div>
 
-                    {/* 본문 미리보기 (그라데이션 블러) */}
+                    {/* 본문 미리보기 */}
                     <div className="text-sm leading-relaxed opacity-80 font-serif relative h-[160px] overflow-hidden">
-                        {story.episodes?.[0]?.content}
-                        <div className={`absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white dark:to-zinc-950 pointer-events-none`} />
+                      {story.episodes?.[0]?.content}
+                      {/* from-transparent 대신 색상/0 사용 */}
+                      <div className={`absolute inset-0 bg-gradient-to-b from-white/0 via-white/0 to-white dark:from-zinc-950/0 dark:via-zinc-950/0 dark:to-zinc-950 pointer-events-none`} />
                     </div>
 
                     {/* Hover 시 '읽어보기' 표시 */}
-                    <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
+                    <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-20 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
                         <span className="bg-white text-black border border-black px-4 py-2 rounded-full text-xs font-bold shadow-sm">READ NOW</span>
                     </div>
                     </div>
