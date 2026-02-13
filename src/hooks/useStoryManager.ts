@@ -48,7 +48,10 @@ export const useStoryManager = (userId?: string) => {
         const lastEpExisting = existingStory.episodes[existingStory.episodes.length - 1];
         const lastEpCurrent = story.episodes[story.episodes.length - 1];
 
-        if (isSameLength && lastEpExisting?.content === lastEpCurrent?.content) {
+        const tagsExisting = JSON.stringify(existingStory.hashtags || []);
+        const tagsCurrent = JSON.stringify(story.hashtags || []);
+
+        if (isSameLength && lastEpExisting?.content === lastEpCurrent?.content && tagsExisting === tagsCurrent) {
             alert(lang === 'kr' ? "이미 저장된 글입니다." : "This story is already saved.");
             return; // 저장하지 않고 종료
         }
@@ -65,6 +68,7 @@ export const useStoryManager = (userId?: string) => {
         { 
           ...story,
           user_id: userId,
+          hashtags: story.hashtags || null,
           // 기존 필드들 업데이트
         }
       ], { onConflict: 'id' });
@@ -162,6 +166,6 @@ export const useStoryManager = (userId?: string) => {
     setCurrentStory, 
     saveToLibrary, 
     deleteFromLibrary, 
-    shareStory 
+    shareStory, 
   };
 };
