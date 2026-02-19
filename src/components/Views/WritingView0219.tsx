@@ -63,30 +63,7 @@ const WritingView: React.FC<Props> = ({
     }
   }, [currentStory.episodes.length]);
 
-  useEffect(() => {
-    if (currentStory.episodes.length === 0 && !loading) {
-      // 스토리의 주제(theme)를 첫 번째 입력값으로 사용하여 집필 시작
-      handleNext(currentStory.theme);
-    }
-  }, [currentStory.episodes.length]);
-
-  // 에피소드 추가 시 스크롤 제어
-  useEffect(() => {
-    if (!currentStory.episodes || currentStory.episodes.length === 0) return;
-
-    if (currentStory.episodes.length === 1) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } 
-    else {
-      setTimeout(() => {
-        if (!streamingContent) {
-          scrollAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 100);
-    }
-  }, [currentStory.episodes.length]);
-
-  // 스트리밍 중일 때 화면 자동 스크롤
+  // [추가] 스트리밍 중일 때 글자가 써지는 속도에 맞춰 화면을 아래로 자동 스크롤
   useEffect(() => {
     if (loading && streamingContent) {
       scrollAnchorRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' });
@@ -95,10 +72,11 @@ const WritingView: React.FC<Props> = ({
 
   const handleNext = async (choice: string) => {
     setLoading(true);
-    setStreamingContent(''); 
+    setStreamingContent(''); // 생성 시작 전 초기화
     try {
       const nextEpNum = currentStory.episodes.length + 1;
       
+      // [수정] generateEpisode에 네 번째 인자로 스트리밍 콜백 전달
       const nextEp = await generateEpisode(
         currentStory, 
         choice, 
@@ -106,12 +84,11 @@ const WritingView: React.FC<Props> = ({
         (text) => setStreamingContent(text)
       );
 
+      // 완결 여부 계산
       const isComp = nextEpNum >= currentStory.totalEpisodes;
       
       const updated = { 
         ...currentStory, 
-        // [수정] 첫 화 생성 시 Gemini가 준 제목이 있으면 교체, 없으면 기존 제목 유지
-        title: nextEp.storyTitle || currentStory.title,
         episodes: [
           ...currentStory.episodes, 
           { 
@@ -121,13 +98,14 @@ const WritingView: React.FC<Props> = ({
             userChoice: choice 
           }
         ], 
-        isCompleted: isComp,
+        isCompleted: nextEpNum >= currentStory.totalEpisodes, 
         hashtags: nextEp.hashtags || currentStory.hashtags
       };
       
       setCurrentStory(updated);
       setCustomInput('');
 
+      // [추가] 완결 시 자동으로 서재에 저장
       if (isComp) {
         saveToLibrary(updated, language);
       }
@@ -140,7 +118,7 @@ const WritingView: React.FC<Props> = ({
       ); 
     } finally { 
       setLoading(false); 
-      setStreamingContent(''); 
+      setStreamingContent(''); // 완료 후 스트리밍 텍스트 초기화
     }
   };
 
