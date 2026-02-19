@@ -193,7 +193,7 @@ const WritingView: React.FC<Props> = ({
                     {currentStory.hashtags.slice(0, 3).map((tag, i) => (
                         <span 
                             key={i} 
-                            className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-gray-500 border-none"
+                            className={`px-3 py-1 rounded-full text-[10px] font-medium border border-gray-200 text-gray-200 bg-white dark:bg-zinc-950 dark:border-zinc-800 dark:text-zinc-500`}
                         >
                             #{tag.replace('#', '')}
                         </span>

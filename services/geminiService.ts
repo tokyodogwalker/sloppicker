@@ -46,7 +46,7 @@ export const generateEpisode = async (
   } else if (progress < 0.8) {
     narrativeStageInstruction = "Stage: [Crisis]. Deepen the conflict. The characters should face emotional or external hurdles."; //
   } else {
-    narrativeStageInstruction = "Stage: [Climax/Cliffhanger]. The tension reaches its peak. Prepare for the final resolution. End with a strong emotional beat or cliffhanger."; //
+    narrativeStageInstruction = "Stage: [Climax/Cliffhanger]. Tension reaches its peak. DO NOT resolve the conflict yet. End with a massive cliffhanger that leads directly to the final episode."; //
   }
 
   const baseGuidelines = `
