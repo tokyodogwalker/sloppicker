@@ -135,9 +135,9 @@ export const generateEpisode = async (
     let fullAccumulatedText = "";
     
     // 스트림을 순회하며 텍스트 조각 처리
-    for await (const chunk of result.stream) {
-      const chunkText = chunk.text();
-      fullAccumulatedText += chunkText;
+    for await (const chunk of result) {
+    const chunkText = chunk.text; 
+    fullAccumulatedText += chunkText;
 
       if (onStream) {
         // JSON 응답 스트림 내에서 "content" 필드의 현재 진행 중인 값 추출
@@ -154,12 +154,9 @@ export const generateEpisode = async (
       }
     }
 
-    // 최종 응답 객체 파싱 및 반환
-    const response = await result.response;
-    const text = response.text;
-    if (!text) throw new Error("Empty response");
-    return JSON.parse(text);
-  } catch (error) {
+    if (!fullAccumulatedText) throw new Error("Empty response");  
+    return JSON.parse(fullAccumulatedText);
+    } catch (error) {
     console.error("Gemini Service Error:", error);
     throw new Error("Failed to generate content."); //
   }
