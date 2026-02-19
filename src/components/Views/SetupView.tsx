@@ -114,29 +114,58 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
     const defaultName = language === 'kr' ? '여주' : 'Y/N';
     const finalRightMember = isNafes ? (nafesName || defaultName) : rightMemberInput;
     
-    const initialStory: Story = {
-    id: self.crypto.randomUUID(), // UUID 생성
-    title: `${selectedGenre}물`,
-    genre: selectedGenre,
-    theme: themeInput,
-    leftGroup: leftGroupInput,
-    leftMember: leftMemberInput,
-    rightGroup: isNafes ? undefined : rightGroupInput,
-    rightMember: finalRightMember,
-    isNafes,
-    nafesName: isNafes ? nafesName : undefined,
-    extraMembers: extraMembers,
-    groupName: leftGroupInput, 
-    totalEpisodes: episodeLimit,
-    episodes: [], 
-    isCompleted: false,
-    createdAt: Date.now(),
-    language
-    };
+    setLoading(true);
+    try {
+      const initialTitle = `${selectedGenre}물`;
 
-    // 바로 상태를 업데이트하고 뷰를 전환합니다.
-    setCurrentStory(initialStory);
-    setView(AppState.WRITING);
+      const initialStory: Story = {
+        id: self.crypto.randomUUID(),
+        title: initialTitle,
+        
+        genre: selectedGenre,
+        theme: themeInput,
+        
+        leftGroup: leftGroupInput,
+        leftMember: leftMemberInput,
+        
+        rightGroup: isNafes ? undefined : rightGroupInput,
+        rightMember: finalRightMember,
+        
+        isNafes,
+        nafesName: isNafes ? nafesName : undefined,
+        
+        extraMembers: extraMembers,
+        groupName: leftGroupInput, 
+        
+        totalEpisodes: episodeLimit,
+        episodes: [], 
+        isCompleted: false,
+        createdAt: Date.now(),
+        language
+      };
+
+      const firstEp = await generateEpisode(initialStory, themeInput, 1);
+
+      const finalTitle = firstEp.storyTitle || initialTitle;
+      
+      const newStory = { 
+        ...initialStory, 
+        title: finalTitle, 
+        episodes: [{ 
+            episodeNumber: 1, 
+            content: firstEp.content, 
+            suggestions: firstEp.suggestions 
+        }]
+      };
+      
+      setCurrentStory(newStory);
+      setView(AppState.WRITING);
+    } catch (e) { 
+        console.error(e);
+        alert(language === 'kr' ? "집필 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요." : "An error occurred while writing. Please try again later."); 
+    } finally { 
+        setLoading(false); 
+    }
   };
 
   return (
