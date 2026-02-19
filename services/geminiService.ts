@@ -70,10 +70,13 @@ export const generateEpisode = async (
 
   // 장르 및 캐릭터 컨텍스트 생성 로직 변경
   const selectedGenreInstruction = GENRE_PROMPTS[story.genre] || "General Fiction";
-  
+
+
   const rightCharacterDesc = story.isNafes 
     ? `'${story.rightMember}' (The Protagonist/User, often referred to as 'You' or 'Yeoju').`
     : `'${story.rightMember}' (Idol from ${story.rightGroup}).`;
+
+  const extraMembersList = story.extraMembers || [];
 
   const extraMembersContext = story.extraMembers.length > 0
     ? `Supporting Characters: ${story.extraMembers.map(e => `${e.name} (${e.groupName})`).join(', ')}`

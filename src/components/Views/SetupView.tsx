@@ -119,7 +119,7 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
       const initialTitle = `${selectedGenre}물`;
 
       const initialStory: Story = {
-        id: Date.now().toString(),
+        id: self.crypto.randomUUID(),
         title: initialTitle,
         
         genre: selectedGenre,

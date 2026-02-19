@@ -101,7 +101,15 @@ export const useStoryManager = (userId?: string) => {
         hashtags: story.hashtags || [],
         language: lang,
         
-        // [삭제됨] updated_at 컬럼이 DB에 없으므로 제외
+        genre: story.genre,
+        theme: story.theme,
+        leftGroup: story.leftGroup,
+        leftMember: story.leftMember,
+        rightGroup: story.rightGroup,
+        rightMember: story.rightMember,
+        isNafes: story.isNafes,
+        nafesName: story.nafesName,
+        extraMembers: story.extraMembers || [],
       };
 
       // ID가 유효한 UUID일 때만 포함 (없으면 Supabase가 새 ID 생성)
