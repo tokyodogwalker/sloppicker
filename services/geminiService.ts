@@ -126,7 +126,7 @@ export const generateEpisode = async (
           properties: {
             content: { type: Type.STRING },
             suggestions: { type: Type.ARRAY, items: { type: Type.STRING } },
-            storyTitle: { type: Type.STRING }
+            storyTitle: { type: Type.STRING },
             hashtags: { type: Type.ARRAY, items: { type: Type.STRING } }
           },
           required: ["content", "suggestions"],
