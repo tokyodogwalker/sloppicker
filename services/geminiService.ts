@@ -24,7 +24,7 @@ export const generateEpisode = async (
   story: Story,
   userInput: string,
   currentEpisodeNum: number,
-  onStream?: (text: string) => void // 텍스트 스트리밍을 위한 콜백 추가
+  
 ): Promise<{ content: string; suggestions: string[]; storyTitle?: string; hashtags?: string[]; }> => {
   const isFirstEpisode = currentEpisodeNum === 1; //
   const isLastEpisode = currentEpisodeNum === story.totalEpisodes; //
@@ -110,15 +110,14 @@ export const generateEpisode = async (
       Write the ${currentEpisodeNum}th episode following the genre '${story.genre}'.`; //
 
   try {
-    // generateContentStream을 사용하여 스트리밍 시작
-    const result = await ai.models.generateContentStream({
-      model: modelName,
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash", //gemini-flash-latest
       contents: prompt,
       config: {
         systemInstruction,
         responseMimeType: "application/json",
         maxOutputTokens: 8192,
-        temperature: 0.8,
+        temperature: 0.8, // 창의성
         responseSchema: {
           type: Type.OBJECT,
           properties: {
@@ -130,34 +129,13 @@ export const generateEpisode = async (
           required: ["content", "suggestions"],
         },
       },
-    }); //
+    });
 
-    let fullAccumulatedText = "";
-    
-    // 스트림을 순회하며 텍스트 조각 처리
-    for await (const chunk of result) {
-    const chunkText = chunk.text; 
-    fullAccumulatedText += chunkText;
-
-      if (onStream) {
-        // JSON 응답 스트림 내에서 "content" 필드의 현재 진행 중인 값 추출
-        // 정규식을 사용하여 이스케이프된 문자열을 포함한 content의 값만 캡처함
-        const contentMatch = fullAccumulatedText.match(/"content"\s*:\s*"([^]*?)(?:"(?=\s*[,}])|\\|$)/);
-        if (contentMatch && contentMatch[1]) {
-          // 이스케이프된 문자(\n, \")를 실제 문자로 변환하여 UI 콜백에 전달
-          const cleanText = contentMatch[1]
-            .replace(/\\n/g, '\n')
-            .replace(/\\"/g, '"')
-            .replace(/\\\\/g, '\\');
-          onStream(cleanText);
-        }
-      }
-    }
-
-    if (!fullAccumulatedText) throw new Error("Empty response");  
-    return JSON.parse(fullAccumulatedText);
-    } catch (error) {
+    const text = response.text;
+    if (!text) throw new Error("Empty response");
+    return JSON.parse(text);
+  } catch (error) {
     console.error("Gemini Service Error:", error);
-    throw new Error("Failed to generate content."); //
+    throw new Error("Failed to generate content.");
   }
 };
