@@ -189,11 +189,14 @@ const WritingView: React.FC<Props> = ({
                 <div className="space-y-4">
                     <p className="text-xl font-serif opacity-80">FIN.</p>
                     {currentStory.hashtags && (
-                        <div className="flex flex-wrap justify-center gap-3">
-                            {currentStory.hashtags.map((tag, i) => (
-                                <span key={i} className={`px-4 py-1.5 rounded-full text-xs font-bold border ${borderClasses} opacity-80 bg-gray-50 dark:bg-zinc-900`}>
-                                    #{tag.replace('#', '')}
-                                </span>
+                    <div className="flex flex-wrap justify-center gap-2">
+                    {currentStory.hashtags.slice(0, 3).map((tag, i) => (
+                        <span 
+                            key={i} 
+                            className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-gray-500 border-none"
+                        >
+                            #{tag.replace('#', '')}
+                        </span>
                             ))}
                         </div>
                     )}

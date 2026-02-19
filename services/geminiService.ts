@@ -94,7 +94,7 @@ export const generateEpisode = async (
     - ${narrativeStageInstruction}
 
     ${isFirstEpisode ? "\n[SPECIAL TASK] Generate a poetic and captivating title for this story based on the theme in the JSON response." : ""}
-    ${isLastEpisode ? "\n[SPECIAL TASK] Generate 3 hashtags (#Keyword) that summarize this entire story's mood and theme." : ""}
+    ${isLastEpisode ? "\n[SPECIAL TASK] Generate EXACTLY 3 hashtags (#Keyword) that summarize this entire story's mood and theme. NOT NAMES" : ""}
     `; //
 
   const previousContext = story.episodes
