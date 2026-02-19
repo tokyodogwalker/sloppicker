@@ -41,6 +41,13 @@ const WritingView: React.FC<Props> = ({
     : null;
 
   useEffect(() => {
+    if (currentStory.is_featured) {
+      window.scrollTo(0, 0);
+    }
+  }, []);
+
+
+  useEffect(() => {
     if (!currentStory.episodes || currentStory.episodes.length === 0) return;
 
     if (currentStory.episodes.length === 1) {
@@ -118,7 +125,10 @@ const WritingView: React.FC<Props> = ({
                  </span>
               </div>
             </div>
-            <button onClick={() => saveToLibrary(currentStory, language)} className={`flex-shrink-0 ${buttonActiveClasses} px-5 py-2 rounded-8 text-[10px] font-black uppercase`}>SAVE</button>
+            {/* [수정] 남의 글(is_featured)일 때는 상단 SAVE 버튼 숨김 */}
+            {!currentStory.is_featured && (
+              <button onClick={() => saveToLibrary(currentStory, language)} className={`flex-shrink-0 ${buttonActiveClasses} px-5 py-2 rounded-8 text-[10px] font-black uppercase`}>SAVE</button>
+            )}
           </div>
 
           {/* 에피소드 목록 렌더링 */}
@@ -151,7 +161,7 @@ const WritingView: React.FC<Props> = ({
                     {currentStory.hashtags.slice(0, 3).map((tag, i) => (
                         <span 
                             key={i} 
-                            className={`px-3 py-1 rounded-full text-[10px] font-medium border border-gray-200 text-gray-200 bg-white hover:bg-zinc-950 dark:border-zinc-800 dark:text-zinc-500`}
+                            className={`px-3 py-1 rounded-full text-[10px] font-medium border border-gray-400 text-gray-400 bg-white hover:bg-zinc-950 dark:border-zinc-800 dark:text-zinc-500`}
                         >
                             #{tag.replace('#', '')}
                         </span>
@@ -160,12 +170,14 @@ const WritingView: React.FC<Props> = ({
                     )}
                 </div>
                 
-                <button 
-                    onClick={() => saveToLibrary(currentStory, language)} 
-                    className={`px-3 py-2 ${buttonActiveClasses} rounded-full font-bold text-xs shadow-lg hover:scale-105 transition-transform flex items-center justify-center gap-2 mx-auto`}
-                >
-                    {language === 'kr' ? '내 서재에 저장' : 'Save to Library'}
-                </button>
+                {!currentStory.is_featured && (
+                  <button 
+                      onClick={() => saveToLibrary(currentStory, language)} 
+                      className={`px-3 py-2 ${buttonActiveClasses} rounded-full font-bold text-xs shadow-lg hover:scale-105 transition-transform flex items-center justify-center gap-2 mx-auto`}
+                  >
+                      {language === 'kr' ? '내 서재에 저장' : 'Save to Library'}
+                  </button>
+                )}
              </div>
           )}
 
