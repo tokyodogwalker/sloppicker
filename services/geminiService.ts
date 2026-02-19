@@ -2,8 +2,8 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Story } from "@/types";
 
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const ai = new GoogleGenAI({ apiKey: API_KEY || "" });
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY; //
+const ai = new GoogleGenAI({ apiKey: API_KEY || "" }); //
 
 /**
  * 장르별 특수 프롬프트 정의
@@ -23,30 +23,30 @@ const GENRE_PROMPTS: Record<string, string> = {
 export const generateEpisode = async (
   story: Story,
   userInput: string,
-  currentEpisodeNum: number
+  currentEpisodeNum: number,
+  onStream?: (text: string) => void // 텍스트 스트리밍을 위한 콜백 추가
 ): Promise<{ content: string; suggestions: string[]; storyTitle?: string; hashtags?: string[]; }> => {
-  const isFirstEpisode = currentEpisodeNum === 1;
-  const isLastEpisode = currentEpisodeNum === story.totalEpisodes;
-  const isMajorEpisode = isFirstEpisode || isLastEpisode || (currentEpisodeNum % 5 === 0);
+  const isFirstEpisode = currentEpisodeNum === 1; //
+  const isLastEpisode = currentEpisodeNum === story.totalEpisodes; //
+  const isMajorEpisode = isFirstEpisode || isLastEpisode || (currentEpisodeNum % 5 === 0); //
 
-  const safeUserInput = `<user_action>${userInput}</user_action>`;
+  const safeUserInput = `<user_action>${userInput}</user_action>`; //
 
-  const modelName = isMajorEpisode ? "gemini-2.5-flash" : "gemini-2.5-flash-lite";
+  const modelName = isMajorEpisode ? "gemini-2.5-flash" : "gemini-2.5-flash-lite"; //
 
   let narrativeStageInstruction = "";
-  const progress = currentEpisodeNum / story.totalEpisodes;
+  const progress = currentEpisodeNum / story.totalEpisodes; //
 
   if (isFirstEpisode) {
-    narrativeStageInstruction = "Stage: [Introduction]. Establish the setting, characters, and the initial incident. Hook the reader immediately.";
+    narrativeStageInstruction = "Stage: [Introduction]. Establish the setting, characters, and the initial incident. Hook the reader immediately."; //
   } else if (isLastEpisode) {
-    narrativeStageInstruction = "Stage: [Conclusion/Resolution]. Bring all conflicts to a close. Provide a satisfying emotional payoff or a lingering ending.";
+    narrativeStageInstruction = "Stage: [Conclusion/Resolution]. Bring all conflicts to a close. Provide a satisfying emotional payoff or a lingering ending."; //
   } else if (progress < 0.4) {
-    narrativeStageInstruction = "Stage: [Rising Action]. Develop the relationships and introduce minor conflicts or events that build tension.";
+    narrativeStageInstruction = "Stage: [Rising Action]. Develop the relationships and introduce minor conflicts or events that build tension."; //
   } else if (progress < 0.8) {
-    narrativeStageInstruction = "Stage: [Crisis]. Deepen the conflict. The characters should face emotional or external hurdles.";
+    narrativeStageInstruction = "Stage: [Crisis]. Deepen the conflict. The characters should face emotional or external hurdles."; //
   } else {
-    // 80% 이상 ~ 마지막 전
-    narrativeStageInstruction = "Stage: [Climax/Cliffhanger]. The tension reaches its peak. Prepare for the final resolution. End with a strong emotional beat or cliffhanger.";
+    narrativeStageInstruction = "Stage: [Climax/Cliffhanger]. The tension reaches its peak. Prepare for the final resolution. End with a strong emotional beat or cliffhanger."; //
   }
 
   const baseGuidelines = `
@@ -66,21 +66,18 @@ export const generateEpisode = async (
     [TONE & STYLE - CRITICAL]
    - NARRATION: You MUST use Korean Plain Form (Haera-che, ~ㄴ다, ~다) for all narration and descriptions. NEVER use polite forms (~니다, ~요) in the narrative text.
    - DIALOGUE: Characters should speak naturally based on their relationship (honorifics or casual speech).
-  `;
+  `; //
 
-  // 장르 및 캐릭터 컨텍스트 생성 로직 변경
-  const selectedGenreInstruction = GENRE_PROMPTS[story.genre] || "General Fiction";
-
-
+  const selectedGenreInstruction = GENRE_PROMPTS[story.genre] || "General Fiction"; //
+  
   const rightCharacterDesc = story.isNafes 
     ? `'${story.rightMember}' (The Protagonist/User, often referred to as 'You' or 'Yeoju').`
-    : `'${story.rightMember}' (Idol from ${story.rightGroup}).`;
+    : `'${story.rightMember}' (Idol from ${story.rightGroup}).`; //
 
-  const extraMembersList = story.extraMembers || [];
-
-  const extraMembersContext = story.extraMembers.length > 0
-    ? `Supporting Characters: ${story.extraMembers.map(e => `${e.name} (${e.groupName})`).join(', ')}`
-    : "No major supporting characters yet.";
+  const extraMembersList = story.extraMembers || []; //
+  const extraMembersContext = extraMembersList.length > 0
+    ? `Supporting Characters: ${extraMembersList.map(e => `${e.name} (${e.groupName})`).join(', ')}`
+    : "No major supporting characters yet."; //
 
   const systemInstruction = `
     ${baseGuidelines}
@@ -98,11 +95,11 @@ export const generateEpisode = async (
 
     ${isFirstEpisode ? "\n[SPECIAL TASK] Generate a poetic and captivating title for this story based on the theme in the JSON response." : ""}
     ${isLastEpisode ? "\n[SPECIAL TASK] Generate 3 hashtags (#Keyword) that summarize this entire story's mood and theme." : ""}
-    `;
+    `; //
 
   const previousContext = story.episodes
     .map((ep) => `[Chapter ${ep.episodeNumber}]\n${ep.content.substring(Math.max(0, ep.content.length - 1000))}`)
-    .join("\n\n");
+    .join("\n\n"); //
 
   const prompt = isFirstEpisode
     ? `Write the First Episode based on the theme: "${userInput}".`
@@ -110,17 +107,18 @@ export const generateEpisode = async (
       ${previousContext}
       
       User's Choice/Action for this turn: "${userInput}". 
-      Write the ${currentEpisodeNum}th episode following the genre '${story.genre}'.`;
+      Write the ${currentEpisodeNum}th episode following the genre '${story.genre}'.`; //
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash", //gemini-flash-latest
+    // generateContentStream을 사용하여 스트리밍 시작
+    const result = await ai.models.generateContentStream({
+      model: modelName,
       contents: prompt,
       config: {
         systemInstruction,
         responseMimeType: "application/json",
         maxOutputTokens: 8192,
-        temperature: 0.8, // 창의성
+        temperature: 0.8,
         responseSchema: {
           type: Type.OBJECT,
           properties: {
@@ -132,13 +130,37 @@ export const generateEpisode = async (
           required: ["content", "suggestions"],
         },
       },
-    });
+    }); //
 
+    let fullAccumulatedText = "";
+    
+    // 스트림을 순회하며 텍스트 조각 처리
+    for await (const chunk of result.stream) {
+      const chunkText = chunk.text();
+      fullAccumulatedText += chunkText;
+
+      if (onStream) {
+        // JSON 응답 스트림 내에서 "content" 필드의 현재 진행 중인 값 추출
+        // 정규식을 사용하여 이스케이프된 문자열을 포함한 content의 값만 캡처함
+        const contentMatch = fullAccumulatedText.match(/"content"\s*:\s*"([^]*?)(?:"(?=\s*[,}])|\\|$)/);
+        if (contentMatch && contentMatch[1]) {
+          // 이스케이프된 문자(\n, \")를 실제 문자로 변환하여 UI 콜백에 전달
+          const cleanText = contentMatch[1]
+            .replace(/\\n/g, '\n')
+            .replace(/\\"/g, '"')
+            .replace(/\\\\/g, '\\');
+          onStream(cleanText);
+        }
+      }
+    }
+
+    // 최종 응답 객체 파싱 및 반환
+    const response = await result.response;
     const text = response.text;
     if (!text) throw new Error("Empty response");
     return JSON.parse(text);
   } catch (error) {
     console.error("Gemini Service Error:", error);
-    throw new Error("Failed to generate content.");
+    throw new Error("Failed to generate content."); //
   }
 };

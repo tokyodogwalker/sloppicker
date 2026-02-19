@@ -35,6 +35,9 @@ const WritingView: React.FC<Props> = ({
   const scrollAnchorRef = useRef<HTMLDivElement>(null);
   const [customInput, setCustomInput] = useState('');
   
+  // [추가] 스트리밍 중인 텍스트를 실시간으로 담을 상태
+  const [streamingContent, setStreamingContent] = useState('');
+  
   // 마지막 에피소드 가져오기 (없을 경우 대비 안전 처리)
   const lastEp = currentStory.episodes.length > 0 
     ? currentStory.episodes[currentStory.episodes.length - 1] 
@@ -45,24 +48,41 @@ const WritingView: React.FC<Props> = ({
     // 에피소드가 없으면 아무것도 안 함
     if (!currentStory.episodes || currentStory.episodes.length === 0) return;
 
-    // 1. 첫 번째 에피소드(1화) 생성 직후 -> 화면 맨 위로 이동 (제목부터 읽을 수 있게)
+    // 1. 첫 번째 에피소드(1화) 생성 직후 -> 화면 맨 위로 이동
     if (currentStory.episodes.length === 1) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } 
-    // 2. 2화 이상인 경우 -> 방금 생성된 최신 에피소드로 스크롤 이동 (연재분 따라가기)
+    // 2. 2화 이상인 경우 -> 방금 생성된 최신 에피소드로 스크롤 이동
     else {
-      // 렌더링 타이밍 고려해 약간의 지연 후 스크롤
       setTimeout(() => {
-        scrollAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // 스트리밍 중이 아닐 때만 일반 스크롤 로직 작동
+        if (!streamingContent) {
+          scrollAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
       }, 100);
     }
-  }, [currentStory.episodes.length]); // 에피소드 개수가 변할 때마다 실행
+  }, [currentStory.episodes.length]);
+
+  // [추가] 스트리밍 중일 때 글자가 써지는 속도에 맞춰 화면을 아래로 자동 스크롤
+  useEffect(() => {
+    if (loading && streamingContent) {
+      scrollAnchorRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' });
+    }
+  }, [streamingContent, loading]);
 
   const handleNext = async (choice: string) => {
     setLoading(true);
+    setStreamingContent(''); // 생성 시작 전 초기화
     try {
       const nextEpNum = currentStory.episodes.length + 1;
-      const nextEp = await generateEpisode(currentStory, choice, nextEpNum);
+      
+      // [수정] generateEpisode에 네 번째 인자로 스트리밍 콜백 전달
+      const nextEp = await generateEpisode(
+        currentStory, 
+        choice, 
+        nextEpNum, 
+        (text) => setStreamingContent(text)
+      );
 
       // 완결 여부 계산
       const isComp = nextEpNum >= currentStory.totalEpisodes;
@@ -87,7 +107,7 @@ const WritingView: React.FC<Props> = ({
 
       // [추가] 완결 시 자동으로 서재에 저장
       if (isComp) {
-      saveToLibrary(updated, language);
+        saveToLibrary(updated, language);
       }
       
     } catch (e) { 
@@ -98,6 +118,7 @@ const WritingView: React.FC<Props> = ({
       ); 
     } finally { 
       setLoading(false); 
+      setStreamingContent(''); // 완료 후 스트리밍 텍스트 초기화
     }
   };
 
@@ -111,11 +132,9 @@ const WritingView: React.FC<Props> = ({
             <div className="flex items-center gap-4 overflow-hidden">
               <button onClick={() => setView(AppState.SETUP)} className={`flex-shrink-0 p-2 border ${borderClasses} rounded-8 ${buttonHoverClasses}`}><ChevronLeft size={20} /></button>
               <div className="flex flex-col overflow-hidden min-w-0">
-                 {/* 제목 Gradient Blur 적용 */}
                  <h1 className="text-sm font-bold truncate pr-4 relative [mask-image:linear-gradient(to_right,black_80%,transparent_100%)]">
                     {currentStory.title}
                  </h1>
-                 {/* 소제목에 [멤버 X 멤버] 표시 추가 */}
                  <span className="text-[10px] opacity-60 font-medium truncate">
                     [{currentStory.leftMember} X {currentStory.rightMember}] {currentStory.episodes.length} / {currentStory.totalEpisodes} EPISODES
                  </span>
@@ -129,7 +148,8 @@ const WritingView: React.FC<Props> = ({
             {currentStory.episodes.map((ep, idx) => (
               <div 
                 key={idx} 
-                ref={idx === currentStory.episodes.length - 1 ? scrollAnchorRef : null} 
+                // 스트리밍 중이 아닐 때만 마지막 에피소드에 ref 연결
+                ref={idx === currentStory.episodes.length - 1 && !streamingContent ? scrollAnchorRef : null} 
                 className="space-y-8 animate-in duration-1000"
               >
                 <div className="text-center py-2">
@@ -142,6 +162,25 @@ const WritingView: React.FC<Props> = ({
                 </div>
               </div>
             ))}
+
+            {/* [추가] 스트리밍 중인 내용 표시 섹션 */}
+            {loading && streamingContent && (
+              <div 
+                ref={scrollAnchorRef} 
+                className="space-y-8 animate-in fade-in duration-500"
+              >
+                <div className="text-center py-2">
+                    <span className={`text-[10px] border ${borderClasses} px-4 py-1.5 font-bold uppercase tracking-widest rounded-full opacity-50`}>
+                        Chapter {currentStory.episodes.length + 1} (Writing...)
+                    </span>
+                </div>
+                <div className="serif-content text-l whitespace-pre-wrap leading-relaxed opacity-80">
+                    {streamingContent.split('\\n').join('\n').replace(/<br\s*\/?>/gi, '\n')}
+                    {/* 타이핑 효과를 위한 커서 */}
+                    <span className="inline-block w-1.5 h-5 ml-1 bg-current animate-pulse align-middle" />
+                </div>
+              </div>
+            )}
           </div>
           
           {/* 완결 시 표시되는 Footer UI */}
@@ -170,8 +209,8 @@ const WritingView: React.FC<Props> = ({
           )}
 
 
-          {/* 로딩 표시 */}
-          {loading && (
+          {/* 로딩 표시 (스트리밍 중이 아닐 때만 Loader 표시) */}
+          {loading && !streamingContent && (
             <div className="max-w-2xl mx-auto py-8 flex flex-col items-center gap-4">
               <AdPlaceholder theme={theme} borderClasses={borderClasses} />
               <Loader2 className="animate-spin" size={32} />
