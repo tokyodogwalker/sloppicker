@@ -445,9 +445,19 @@ const SetupView: React.FC<Props> = ({ language, setLanguage, setLoading, loading
                           <h4 className="font-bold text-lg leading-tight truncate mb-1">
                             {story.title}
                           </h4>
-                          <span className="text-xs opacity-60 block">
-                              [{story.leftMember} X {story.rightMember}]
-                          </span>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                                {story.hashtags && story.hashtags.length > 0 ? (
+                                    story.hashtags.slice(0, 3).map((tag, i) => (
+                                        <span key={i} className="text-[10px] opacity-60 font-medium text-blue-500 dark:text-blue-400">
+                                            #{tag.replace('#', '')}
+                                        </span>
+                                    ))
+                                ) : (
+                                    <span className="text-xs opacity-60 block">
+                                        [{story.leftMember} X {story.rightMember}]
+                                    </span>
+                                )}
+                          </div>
                       </div>
 
                       {/* 본문 미리보기 */}

@@ -167,9 +167,6 @@ export const useStoryManager = (userId?: string) => {
         return;
     }
 
-    // 공유 전 자동 저장
-    await saveToLibrary(story, lang);
-
     if (!confirm(lang === 'kr' ? "메인에 공유하시겠습니까? (검토 후 메인에 공개됩니다)" : "Submit to admin?")) return;
     
     let finalName = '익명';

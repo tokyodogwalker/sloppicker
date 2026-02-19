@@ -63,6 +63,9 @@ const WritingView: React.FC<Props> = ({
     try {
       const nextEpNum = currentStory.episodes.length + 1;
       const nextEp = await generateEpisode(currentStory, choice, nextEpNum);
+
+      // 완결 여부 계산
+      const isComp = nextEpNum >= currentStory.totalEpisodes;
       
       const updated = { 
         ...currentStory, 
@@ -76,13 +79,16 @@ const WritingView: React.FC<Props> = ({
           }
         ], 
         isCompleted: nextEpNum >= currentStory.totalEpisodes, 
-        hashtags: nextEp.hashtags 
+        hashtags: nextEp.hashtags || currentStory.hashtags
       };
       
       setCurrentStory(updated);
       setCustomInput('');
-      
-      // (기존의 수동 스크롤 코드는 useEffect로 대체되어 삭제됨)
+
+      // [추가] 완결 시 자동으로 서재에 저장
+      if (isComp) {
+      saveToLibrary(updated, language);
+      }
       
     } catch (e) { 
       console.error("Episode Generation Error:", e);
