@@ -17,7 +17,6 @@ export const useStoryManager = (userId?: string) => {
         .order('created_at', { ascending: false });
 
       if (data) {
-        // DB에서 가져온 데이터(isCompleted 등)가 이미 CamelCase이므로 별도 변환 없이 사용 가능
         setStories(data as any);
       } else if (error) {
         console.error("Supabase load error:", error);
@@ -32,8 +31,55 @@ export const useStoryManager = (userId?: string) => {
     }
   };
 
+  // [추가 기능] 로컬 데이터를 DB로 동기화 (마이그레이션)
+  const syncLocalStories = async (newUserId: string) => {
+    const localSaved = localStorage.getItem('spk_stories');
+    if (!localSaved) return;
+
+    const localStories: Story[] = JSON.parse(localSaved);
+    if (localStories.length === 0) return;
+
+    try {
+      // UUID 유효성 검사기
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+      const syncPromises = localStories.map(story => {
+        // DB 저장용 페이로드 생성
+        const dbPayload: any = {
+          ...story,
+          user_id: newUserId,
+          author_name: story.author_name || '익명',
+          is_shared: story.is_shared || false,
+          is_featured: story.is_featured || false,
+        };
+
+        // 로컬 ID가 유효한 UUID가 아니면(임시 ID인 경우) 삭제하여 Supabase가 새로 생성하게 함
+        if (!uuidRegex.test(story.id)) {
+          delete dbPayload.id;
+        }
+
+        return supabase.from('stories').upsert([dbPayload]);
+      });
+
+      await Promise.all(syncPromises);
+      
+      // 동기화 완료 후 로컬 데이터 삭제
+      localStorage.removeItem('spk_stories');
+      alert("로그인 전 작성하신 글들이 내 서재로 안전하게 이동되었습니다.");
+      
+      // 목록 갱신
+      fetchStories();
+    } catch (error) {
+      console.error("Sync Local Stories Error:", error);
+    }
+  };
+
+  // userId 변경 감지 시 실행 (로그인 직후 호출됨)
   useEffect(() => {
     fetchStories();
+    if (userId) {
+      syncLocalStories(userId);
+    }
   }, [userId]);
 
   // 2. 저장하기 (컬럼명 이슈 완벽 수정)
@@ -55,7 +101,6 @@ export const useStoryManager = (userId?: string) => {
 
     // [로그인] Supabase 저장 로직
     try {
-      // 2-1. 중복 및 개수 제한 체크
       const existingStory = stories.find(s => s.id === story.id);
 
       // 신규 글 개수 제한 (10개)
@@ -78,29 +123,21 @@ export const useStoryManager = (userId?: string) => {
       }
 
       // 2-2. Payload 생성
-      // UUID 유효성 검사 (임시 ID 제외)
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
       const isValidUuid = story.id && uuidRegex.test(story.id);
 
-      // [핵심] DB 컬럼 구조에 맞게 매핑 (updated_at 삭제됨)
       const dbPayload: any = {
-        // 1. Snake Case 컬럼
         user_id: userId,
         author_name: story.author_name || '익명',
         is_shared: false,
         is_featured: false,
-        
-        // 2. Camel Case 컬럼
         isCompleted: story.isCompleted || false,
         totalEpisodes: story.totalEpisodes || 0,
         groupName: story.groupName || null,
-        
-        // 3. 일반 컬럼
         title: story.title || (lang === 'kr' ? "제목 없음" : "Untitled"),
         episodes: story.episodes || [],
         hashtags: story.hashtags || [],
         language: lang,
-        
         genre: story.genre,
         theme: story.theme,
         leftGroup: story.leftGroup,
@@ -112,12 +149,10 @@ export const useStoryManager = (userId?: string) => {
         extraMembers: story.extraMembers || [],
       };
 
-      // ID가 유효한 UUID일 때만 포함 (없으면 Supabase가 새 ID 생성)
       if (isValidUuid) {
         dbPayload.id = story.id;
       }
 
-      // 2-3. Upsert 실행
       const { error } = await supabase
         .from('stories')
         .upsert([dbPayload], { onConflict: 'id' });
@@ -125,14 +160,11 @@ export const useStoryManager = (userId?: string) => {
       if (error) throw error;
 
       alert(lang === 'kr' ? "서재에 저장되었습니다." : "Saved.");
-      fetchStories(); // 목록 갱신
+      fetchStories();
 
     } catch (error: any) {
       console.error("Save Error Details:", error);
-      alert(lang === 'kr' 
-        ? `저장 실패: ${error.message}` 
-        : `Save Error: ${error.message}`
-      );
+      alert(lang === 'kr' ? `저장 실패: ${error.message}` : `Save Error: ${error.message}`);
     }
   };
 
@@ -181,7 +213,6 @@ export const useStoryManager = (userId?: string) => {
 
     if (useNickname) finalName = nickname;
 
-    // 업데이트: CSV 기준 snake_case 컬럼 사용
     const { error } = await supabase
       .from('stories')
       .update({ 
