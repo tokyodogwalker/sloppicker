@@ -23,6 +23,7 @@ const LibraryView: React.FC<Props> = ({ stories, setCurrentStory, setView, share
     <div className={`max-w-4xl mx-auto p-6 space-y-12 animate-in fade-in pb-24`}>
       <div className={`flex items-center justify-between border-b ${borderClasses} pb-8`}>
         <h1 className="text-4xl font-black font-bold uppercase">Library</h1>
+        <div className="flex items-center gap-2">
         {session ? (
             <button 
               onClick={onLogout}
@@ -41,6 +42,7 @@ const LibraryView: React.FC<Props> = ({ stories, setCurrentStory, setView, share
             </button>
           )}
         <button onClick={() => setView(AppState.SETUP)} className={`flex items-center gap-1 border ${borderClasses} px-4 py-2 rounded-8 text-[10px] font-black uppercase transition-all ${buttonHoverClasses}`}>new</button>
+        </div>
       </div>
         <p className="text-[10px] font-bold uppercase tracking-widest text-center leading-relaxed">
           {language === 'kr' 
