@@ -92,7 +92,7 @@ export const useStoryManager = (userId?: string) => {
         
         // 2. Camel Case 컬럼
         isCompleted: story.isCompleted || false,
-        totalEpisodes: story.episodes?.length || 0,
+        totalEpisodes: story.totalEpisodes || 0,
         groupName: story.groupName || null,
         
         // 3. 일반 컬럼

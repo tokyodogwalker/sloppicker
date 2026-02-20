@@ -41,14 +41,17 @@ const WritingView: React.FC<Props> = ({
     : null;
 
   useEffect(() => {
-    if (currentStory.is_featured) {
+    // Sloptories에 노출된 글(is_featured)이거나 이미 완료된 글을 읽으러 들어온 경우
+    if (currentStory.is_featured || currentStory.isCompleted) {
       window.scrollTo(0, 0);
     }
-  }, []);
+  }, [currentStory.id]);
 
 
   useEffect(() => {
     if (!currentStory.episodes || currentStory.episodes.length === 0) return;
+
+    if (currentStory.is_featured) return;
 
     if (currentStory.episodes.length === 1) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
