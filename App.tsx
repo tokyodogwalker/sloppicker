@@ -88,11 +88,15 @@ const App: React.FC = () => {
                 setCurrentStory={setCurrentStory} 
                 setView={setView} 
                 deleteFromLibrary={deleteFromLibrary} 
-                shareStory={shareStory}  // [수정] shareStory 전달 추가
+                shareStory={shareStory}
                 theme={theme} 
                 borderClasses={borderClasses} 
                 buttonActiveClasses={buttonActiveClasses} 
-                buttonHoverClasses={buttonHoverClasses} 
+                buttonHoverClasses={buttonHoverClasses}
+                language={language}
+                session={session}
+                onLogin={handleLogin} 
+                onLogout={handleLogout} 
             />
         )}
       </main>
