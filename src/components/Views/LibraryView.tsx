@@ -1,9 +1,10 @@
 import React from 'react';
 import { Story, AppState } from '../../../types';
-import { Trash2, Share2 } from 'lucide-react'; // [수정] Share2 import 추가
+import { Trash2, Share2, LogIn, LogOut } from 'lucide-react'; 
 
 interface Props {
   stories: Story[];
+  language: 'kr' | 'en';
   setCurrentStory: (s: Story) => void;
   setView: (v: AppState) => void;
   deleteFromLibrary: (id: string) => void;
@@ -12,15 +13,44 @@ interface Props {
   borderClasses: string;
   buttonActiveClasses: string;
   buttonHoverClasses: string;
+  session: any;
+  onLogin: () => void;
+  onLogout: () => void;
 }
 
-const LibraryView: React.FC<Props> = ({ stories, setCurrentStory, setView, shareStory, deleteFromLibrary, theme, borderClasses, buttonActiveClasses, buttonHoverClasses }) => {
+const LibraryView: React.FC<Props> = ({ stories, setCurrentStory, setView, shareStory, deleteFromLibrary, theme, borderClasses, buttonActiveClasses, buttonHoverClasses, language, session, onLogin, onLogout }) => {
   return (
     <div className={`max-w-4xl mx-auto p-6 space-y-12 animate-in fade-in pb-24`}>
       <div className={`flex items-center justify-between border-b ${borderClasses} pb-8`}>
         <h1 className="text-4xl font-black font-bold uppercase">Library</h1>
         <button onClick={() => setView(AppState.SETUP)} className={`flex items-center gap-1 border ${borderClasses} px-4 py-2 rounded-8 text-[10px] font-black uppercase transition-all ${buttonHoverClasses}`}>new</button>
       </div>
+      <div className={`p-4 border border-dashed ${borderClasses} rounded-8 bg-transparent opacity-80`}>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-center leading-relaxed">
+          {language === 'kr' 
+            ? `서재 공간: ${stories.length} / 10 | 최대 10개까지 저장 가능합니다. 소중한 글을 위해 공간을 관리해 주세요.` 
+            : `Library Capacity: ${stories.length} / 10 | Max 10 stories. Please manage your archives carefully.`}
+        </p>
+      </div>
+
+      {session ? (
+            <button 
+              onClick={onLogout}
+              className={`px-3 py-2 border ${borderClasses} rounded-full text-[10px] font-bold flex items-center gap-2 ${buttonHoverClasses} shadow-sm transition-all`}
+            >
+              <LogOut size={12} />
+              {language === 'kr' ? '로그아웃' : 'Sign out'}
+            </button>
+          ) : (
+            <button 
+              onClick={onLogin}
+              className={`px-3 py-2 border ${borderClasses} rounded-full text-[10px] font-bold flex items-center gap-2 ${buttonActiveClasses} shadow-sm hover:opacity-80 transition-all`}
+            >
+              <LogIn size={12} />
+              {language === 'kr' ? 'X 로그인' : 'X Sign in'}
+            </button>
+          )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {stories.length === 0 ? (
           <div className="col-span-full text-center py-32 border border-dashed border-gray-300 dark:border-zinc-700 rounded-8"><p className="text-gray-400 text-sm font-bold uppercase tracking-widest">No archives found</p></div>
