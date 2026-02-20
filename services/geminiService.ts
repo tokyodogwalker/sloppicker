@@ -1,105 +1,80 @@
 // services/geminiService.ts
 import { GoogleGenAI, Type } from "@google/genai";
 import { Story } from "@/types";
+import { supabase } from "@/src/supabaseClient";
 
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY; //
-const ai = new GoogleGenAI({ apiKey: API_KEY || "" }); //
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const ai = new GoogleGenAI({ apiKey: API_KEY || "" });
 
-/**
- * 장르별 특수 프롬프트 정의
- */
-const GENRE_PROMPTS: Record<string, string> = {
-  '일상': "Focus on realistic, slice-of-life details, cafes, practice rooms, and subtle emotional shifts. Create a cozy and natural atmosphere.",
-  '리얼물': "Based on the actual idol industry reality. Incorporate schedules, dorm life, waiting rooms, and stage behind-the-scenes dynamics.",
-  '캠퍼스': "University setting. Focus on majors, sunbae-hubae dynamics, campus festivals, library encounters, and drinking parties.",
-  '오피스': "Company hierarchy setting. Focus on meeting rooms, overtime work, business trips, and secret office romance tension.",
-  '오메가버스': "Apply Omegaverse rules (Alpha/Beta/Omega, Pheromones, Heat/Rut cycles). Focus on instinct vs. reason and biological tension.",
-  '센티넬버스': "Sentinel/Guide universe. Focus on Guiding, bonding, sensory overload, and the urgency of battles or missions.",
-  'TS': "TS (Genderbend AU). An alternate universe where the character is born as the opposite gender. No physical transformation. Focus on the natural tension, distinctive social dynamics, and the reimagined relationship chemistry driven by this gender swap.",
-  '수인': "Characters have animal traits (ears, tail) or transformation abilities. Focus on animalistic instincts and behaviors.",
-  '아포칼립스': "Zombie or disaster survival setting. Focus on scarcity, trust issues, danger, and survival romance in a ruined world."
+const fetchAppConfigs = async () => {
+  const { data } = await supabase.from('app_config').select('key, value');
+  return data?.reduce((acc: any, item) => {
+    acc[item.key] = item.value;
+    return acc;
+  }, {}) || {};
+};
+
+const fetchGenrePrompt = async (genreName: string) => {
+  const { data } = await supabase
+    .from('genres')
+    .select('prompt_extension, writing_style_examples')
+    .eq('name', genreName)
+    .single();
+  return data;
 };
 
 export const generateEpisode = async (
   story: Story,
   userInput: string,
   currentEpisodeNum: number,
-  
 ): Promise<{ content: string; suggestions: string[]; storyTitle?: string; hashtags?: string[]; }> => {
-  const isFirstEpisode = currentEpisodeNum === 1; //
-  const isLastEpisode = currentEpisodeNum === story.totalEpisodes; //
-  const isMajorEpisode = isFirstEpisode || isLastEpisode || (currentEpisodeNum % 5 === 0); //
+  
+  const [configs, genreData] = await Promise.all([
+    fetchAppConfigs(),
+    fetchGenrePrompt(story.genre)
+  ]);
 
-  const safeUserInput = `<user_action>${userInput}</user_action>`; //
+  const isFirstEpisode = currentEpisodeNum === 1;
+  const isLastEpisode = currentEpisodeNum === story.totalEpisodes;
+  const isMajorEpisode = isFirstEpisode || isLastEpisode || (currentEpisodeNum % 5 === 0);
+  const modelName = isMajorEpisode ? "gemini-2.5-flash" : "gemini-2.5-flash-lite";
 
-  const modelName = isMajorEpisode ? "gemini-2.5-flash" : "gemini-2.5-flash-lite"; //
-
-  let narrativeStageInstruction = "";
-  const progress = currentEpisodeNum / story.totalEpisodes; //
-
-  if (isFirstEpisode) {
-    narrativeStageInstruction = "Stage: [Introduction]. Establish the setting, characters, and the initial incident. Hook the reader immediately."; //
-  } else if (isLastEpisode) {
-    narrativeStageInstruction = "Stage: [Conclusion/Resolution]. Bring all conflicts to a close. Provide a satisfying emotional payoff or a lingering ending."; //
-  } else if (progress < 0.4) {
-    narrativeStageInstruction = "Stage: [Rising Action]. Develop the relationships and introduce minor conflicts or events that build tension."; //
-  } else if (progress < 0.8) {
-    narrativeStageInstruction = "Stage: [Crisis]. Deepen the conflict. The characters should face emotional or external hurdles."; //
-  } else {
-    narrativeStageInstruction = "Stage: [Climax/Cliffhanger]. Tension reaches its peak. DO NOT resolve the conflict yet. End with a massive cliffhanger that leads directly to the final episode."; //
-  }
-
-  const baseGuidelines = `
-    You are Sloppicker, a top-tier K-pop fanfiction writer renowned for deep emotional insight and vivid sensory descriptions.
+  // 시스템 인스트럭션 구성
+  const systemInstruction = `
+    ${configs.system_identity}
     
     [WRITING RULES]
-   1. EXTENSIVE LENGTH: 500-1000 Korean characters. Ensure the narrative is immersive and detailed.
-   2. SHOW, DON'T TELL: Do not describe personalities directly. Show them through actions, hesitation, and small habits.
-   3. NO EXTERNAL DB: Rely solely on the provided names and group names to simulate their persona based on your own knowledge of K-pop idols. If the person is unknown, infer a persona based on the genre context.
-   4. GENRE FAITHFULNESS: Strictly adhere to the rules of the selected genre.
-   5. NEXT STEPS: Provide exactly 3 diverse plot suggestions for the next chapter.
-   6. NATURAL DIALOGUE: Use Korean nuances perfectly. Do not overuse titles/honorifics if they are close.
-   7. FORMATTING: Use double newline characters (\\n\\n) for paragraph breaks. No HTML.
-   8. NARRATIVE STRUCTURE: Follow the requested '${narrativeStageInstruction}' strictly.
-   9. [CRITICAL] NO REPETITION: Do NOT summarize, repeat, or rephrase the events from the 'Previous Story Context'. Start the new narrative IMMEDIATELY after the last sentence of the previous context. 
+    ${configs.writing_rules_common}
+    
+    [NARRATIVE GUIDE]
+    ${configs.writing_rules_narrative}
 
-    [TONE & STYLE - CRITICAL]
-   - NARRATION: You MUST use Korean Plain Form (Haera-che, ~ㄴ다, ~다) for all narration and descriptions. NEVER use polite forms (~니다, ~요) in the narrative text.
-   - DIALOGUE: Characters should speak naturally based on their relationship (honorifics or casual speech).
-  `; //
+    [GENRE SETTING: ${story.genre}]
+    Instruction: ${genreData?.prompt_extension || "General Fiction"}
+    Style & Mood: ${genreData?.writing_style_examples || "Standard narrative."}
 
-  const selectedGenreInstruction = GENRE_PROMPTS[story.genre] || "General Fiction"; //
-  
-  const rightCharacterDesc = story.isNafes 
-    ? `'${story.rightMember}' (The Protagonist/User, often referred to as 'You' or 'Yeoju').`
-    : `'${story.rightMember}' (Idol from ${story.rightGroup}).`; //
-
-  const extraMembersList = story.extraMembers || []; //
-  const extraMembersContext = extraMembersList.length > 0
-    ? `Supporting Characters: ${extraMembersList.map(e => `${e.name} (${e.groupName})`).join(', ')}`
-    : "No major supporting characters yet."; //
-
-  const systemInstruction = `
-    ${baseGuidelines}
-
-    [STORY SETTINGS]
-    - Genre: ${story.genre} (${selectedGenreInstruction})
-    - Main Characters: 
-      1. ${story.leftMember} (Group: ${story.leftGroup})
-      2. ${rightCharacterDesc}
-    - ${extraMembersContext}
+    [STORY SETTINGS (INTERNAL REFERENCE ONLY)]
+    - Primary Reference: ${story.leftMember} (Original Persona: ${story.leftGroup})
+    - Secondary Reference: ${story.rightMember} ${story.isNafes ? `(User Persona: ${story.nafesName})` : `(Original Persona: ${story.rightGroup})`}
+    
+    [IMPORTANT] 
+    In this "${story.genre}" universe, the "Original Persona" (Group names like ${story.leftGroup}) is ONLY a reference for their personality, tone, and habits. 
+    Unless the genre is "Real", they are NOT idols. They are completely integrated into the ${story.genre} setting.
     - Theme/Prompt (Ssul): "${story.theme}"
-    - Current Episode: ${currentEpisodeNum} / ${story.totalEpisodes}
+    - Current Progress: ${currentEpisodeNum} / ${story.totalEpisodes}
     - Language: ${story.language === 'en' ? 'English' : 'Korean'}
-    - ${narrativeStageInstruction}
+    
+    ${isFirstEpisode ? `\n${configs.writing_rules_firstEP}` : ""}
+    ${isLastEpisode ? `\n${configs.writing_rules_lastEP}` : ""}
 
-    ${isFirstEpisode ? "\n[SPECIAL TASK] Generate a poetic and captivating title for this story based on the theme in the JSON response." : ""}
-    ${isLastEpisode ? "\n[SPECIAL TASK] Generate EXACTLY 3 hashtags (#Keyword) that summarize this entire story's mood and theme. NOT NAMES" : ""}
-    `; //
+    [RESPONSE FORMAT]
+    ${configs.response_format}
+  `;
 
+  // 이전 컨텍스트 1000자 유지
   const previousContext = story.episodes
     .map((ep) => `[Chapter ${ep.episodeNumber}]\n${ep.content.substring(Math.max(0, ep.content.length - 1000))}`)
-    .join("\n\n"); //
+    .join("\n\n");
 
   const prompt = isFirstEpisode
     ? `Write the First Episode based on the theme: "${userInput}".`
@@ -107,17 +82,17 @@ export const generateEpisode = async (
       ${previousContext}
       
       User's Choice/Action for this turn: "${userInput}". 
-      Write the ${currentEpisodeNum}th episode following the genre '${story.genre}'.`; //
+      Write the ${currentEpisodeNum}th episode following the genre '${story.genre}'.`;
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash", //gemini-flash-latest
+      model: modelName,
       contents: prompt,
       config: {
         systemInstruction,
         responseMimeType: "application/json",
-        maxOutputTokens: 8192,
-        temperature: 0.8, // 창의성
+        maxOutputTokens: 8192, // 최대 출력 토큰 유지
+        temperature: 0.8,
         responseSchema: {
           type: Type.OBJECT,
           properties: {
@@ -135,7 +110,7 @@ export const generateEpisode = async (
     if (!text) throw new Error("Empty response");
     return JSON.parse(text);
   } catch (error) {
-    console.error("Gemini Service Error:", error);
+    console.error("Gemini DB-Driven Service Error:", error);
     throw new Error("Failed to generate content.");
   }
 };
