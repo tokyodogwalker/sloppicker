@@ -117,7 +117,7 @@ const App: React.FC = () => {
       {view === AppState.WRITING ? (
         <button onClick={() => window.scrollTo({top:0, behavior:'smooth'})} className={`fixed bottom-24 right-6 w-12 h-12 rounded-full border ${borderClasses} ${theme === 'dark' ? 'bg-zinc-900' : 'bg-white'} flex items-center justify-center z-[110] shadow-lg`}><ArrowUp size={20} /></button>
       ) : (
-        <a href="https://spin-spin.com/jonnagal" target="_blank" rel="noopener noreferrer" className={`fixed bottom-24 right-6 w-12 h-12 rounded-full border ${borderClasses} ${theme === 'dark' ? 'bg-zinc-900' : 'bg-white'} flex items-center justify-center z-[110] shadow-lg`}><MessageSquare size={17} /></a>
+        <a href="https://https://x.com/sloppicker" target="_blank" rel="noopener noreferrer" className={`fixed bottom-24 right-6 w-12 h-12 rounded-full border ${borderClasses} ${theme === 'dark' ? 'bg-zinc-900' : 'bg-white'} flex items-center justify-center z-[110] shadow-lg`}><MessageSquare size={17} /></a>
       )}
     </div>
   );
