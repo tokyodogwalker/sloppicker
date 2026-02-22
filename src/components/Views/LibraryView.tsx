@@ -46,7 +46,7 @@ const LibraryView: React.FC<Props> = ({ stories, setCurrentStory, setView, share
       </div>
         <p className="text-[10px] font-bold uppercase tracking-widest text-center leading-relaxed">
           {language === 'kr' 
-            ? `내 서재: ${stories.length} / 10 | 최대 10개까지 저장 가능합니다. 소중한 글을 위해 공간을 관리해 주세요.` 
+            ? `내 서재: ${stories.length} / 10 | 소중한 글을 위해 서재를 관리해 주세요.` 
             : `My Library: ${stories.length} / 10 | Max 10 stories. Please manage your archives carefully.`}
         </p>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
