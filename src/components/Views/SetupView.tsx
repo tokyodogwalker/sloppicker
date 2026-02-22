@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Story, AppState, Genre, ExtraCharacter } from '../../../types';
-import { Plus, X, Loader2, Globe } from 'lucide-react';
+import { Plus, X, Loader2, Globe, LogIn, LogOut, User } from 'lucide-react';
 import { generateEpisode } from '../../../services/geminiService';
-import { LogIn, LogOut, User } from 'lucide-react';
 import { supabase } from '../../supabaseClient';
 
 const EPISODE_OPTIONS = [10, 20, 50, 100];
