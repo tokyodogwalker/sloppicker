@@ -37,7 +37,7 @@ export const generateEpisode = async (
   const isFirstEpisode = currentEpisodeNum === 1;
   const isLastEpisode = currentEpisodeNum === story.totalEpisodes;
   const isMajorEpisode = isFirstEpisode || isLastEpisode || (currentEpisodeNum % 5 === 0);
-  const modelName = isMajorEpisode ? "gemini-2.5-flash" : "gemini-2.5-flash-lite";
+  const modelName = isMajorEpisode ? "gemini-2.5-flash" : "gemini-2.5-flash";
 
   // 시스템 인스트럭션 구성
   const systemInstruction = `
