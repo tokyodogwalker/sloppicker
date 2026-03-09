@@ -31,7 +31,6 @@ export const useStoryManager = (userId?: string) => {
     }
   };
 
-  // [추가 기능] 로컬 데이터를 DB로 동기화 (마이그레이션)
   const syncLocalStories = async (newUserId: string) => {
     const localSaved = localStorage.getItem('spk_stories');
     if (!localSaved) return;
@@ -43,29 +42,57 @@ export const useStoryManager = (userId?: string) => {
       // UUID 유효성 검사기
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-      const syncPromises = localStories.map(story => {
-        // DB 저장용 페이로드 생성
+      let hasError = false; // 에러 감지용 플래그
+
+      const syncPromises = localStories.map(async (story) => {
+        // DB 저장용 페이로드 생성 (saveToLibrary와 동일하게 불필요한 필드 제거)
         const dbPayload: any = {
-          ...story,
           user_id: newUserId,
           author_name: story.author_name || '익명',
           is_shared: story.is_shared || false,
           is_featured: story.is_featured || false,
+          isCompleted: story.isCompleted || false,
+          totalEpisodes: story.totalEpisodes || 0,
+          groupName: story.groupName || null,
+          title: story.title || "제목 없음",
+          episodes: story.episodes || [],
+          hashtags: story.hashtags || [],
+          language: story.language || 'kr',
+          genre: story.genre,
+          theme: story.theme,
+          leftGroup: story.leftGroup,
+          leftMember: story.leftMember,
+          rightGroup: story.rightGroup,
+          rightMember: story.rightMember,
+          isNafes: story.isNafes,
+          nafesName: story.nafesName,
+          extraMembers: story.extraMembers || [],
         };
 
-        // 로컬 ID가 유효한 UUID가 아니면(임시 ID인 경우) 삭제하여 Supabase가 새로 생성하게 함
-        if (!uuidRegex.test(story.id)) {
-          delete dbPayload.id;
+        // 로컬 ID가 유효한 UUID인 경우에만 기존 ID 유지
+        if (story.id && uuidRegex.test(story.id)) {
+          dbPayload.id = story.id;
         }
 
-        return supabase.from('stories').upsert([dbPayload]);
+        // upsert 호출 후 에러를 반드시 확인합니다.
+        const { error } = await supabase.from('stories').upsert([dbPayload], { onConflict: 'id' });
+        
+        if (error) {
+          console.error(`"${story.title}" 동기화 실패:`, error);
+          hasError = true;
+        }
       });
 
+      // 모든 통신이 끝날 때까지 대기
       await Promise.all(syncPromises);
       
-      // 동기화 완료 후 로컬 데이터 삭제
-      localStorage.removeItem('spk_stories');
-      alert("로그인 전 작성하신 글들이 내 서재로 안전하게 이동되었습니다.");
+      // 통신 중 에러가 하나도 없었을 때만 로컬 스토리지 삭제
+      if (!hasError) {
+        localStorage.removeItem('spk_stories');
+        alert("로그인 전 작성하신 글들이 내 서재로 안전하게 이동되었습니다.");
+      } else {
+        alert("일부 글을 동기화하는 중에 오류가 발생했습니다. (내 서재에서 확인해주세요)");
+      }
       
       // 목록 갱신
       fetchStories();
@@ -76,9 +103,14 @@ export const useStoryManager = (userId?: string) => {
 
   // userId 변경 감지 시 실행 (로그인 직후 호출됨)
   useEffect(() => {
-    fetchStories();
     if (userId) {
-      syncLocalStories(userId);
+      // 로그인이 된 경우: 기존 로컬 데이터를 먼저 동기화한 뒤 목록을 불러옴
+      syncLocalStories(userId).then(() => {
+        fetchStories();
+      });
+    } else {
+      // 비로그인 상태일 때는 즉시 로컬 목록 불러오기
+      fetchStories();
     }
   }, [userId]);
 
