@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { Story } from '../../types';
 
-export const useStoryManager = (userId?: string) => {
+export const useStoryManager = (userId?: string, lang: 'kr' | 'en' = 'kr') => {
   const [stories, setStories] = useState<Story[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentStory, setCurrentStory] = useState<Story | null>(null);
@@ -31,7 +31,8 @@ export const useStoryManager = (userId?: string) => {
     }
   };
 
-  const syncLocalStories = async (newUserId: string) => {
+  // [추가 기능] 로컬 데이터를 DB로 동기화 (마이그레이션)
+  const syncLocalStories = async (newUserId: string, lang: 'kr' | 'en' = 'kr') => {
     const localSaved = localStorage.getItem('spk_stories');
     if (!localSaved) return;
 
@@ -39,13 +40,38 @@ export const useStoryManager = (userId?: string) => {
     if (localStories.length === 0) return;
 
     try {
-      // UUID 유효성 검사기
+      // 1. 현재 DB에 있는 내 글 개수 먼저 확인하기
+      const { count, error: countError } = await supabase
+        .from('stories')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', newUserId);
+
+      if (countError) throw countError;
+
+      const currentDbCount = count || 0;
+      const availableSlots = 10 - currentDbCount;
+
+      // 2. 남은 자리가 아예 없으면 동기화 중단
+      if (availableSlots <= 0) {
+        alert(lang === 'kr' 
+          ? "내 서재가 가득 차서(최대 10개) 로그인 전 작성하신 글을 가져올 수 없습니다. 서재를 비운 뒤 새로고침 해주세요."
+          : "Your Library is full (Max 10). Cannot sync local stories. Please free up space and refresh.");
+        return; 
+      }
+
+      // 3. 빈자리 개수만큼만 로컬 글 잘라내기
+      const storiesToSync = localStories.slice(0, availableSlots);
+      if (localStories.length > availableSlots) {
+        alert(lang === 'kr' 
+          ? `서재 공간이 부족하여 로컬에 있던 ${localStories.length}개 중 ${availableSlots}개만 동기화됩니다.`
+          : `Library space is limited. Syncing ${availableSlots} out of ${localStories.length} local stories.`);
+      }
+
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      let hasError = false;
 
-      let hasError = false; // 에러 감지용 플래그
-
-      const syncPromises = localStories.map(async (story) => {
-        // DB 저장용 페이로드 생성 (saveToLibrary와 동일하게 불필요한 필드 제거)
+      // 4. 잘라낸 글들만 DB로 전송
+      const syncPromises = storiesToSync.map(async (story) => {
         const dbPayload: any = {
           user_id: newUserId,
           author_name: story.author_name || '익명',
@@ -54,10 +80,10 @@ export const useStoryManager = (userId?: string) => {
           isCompleted: story.isCompleted || false,
           totalEpisodes: story.totalEpisodes || 0,
           groupName: story.groupName || null,
-          title: story.title || "제목 없음",
+          title: story.title || (lang === 'kr' ? "제목 없음" : "Untitled"),
           episodes: story.episodes || [],
           hashtags: story.hashtags || [],
-          language: story.language || 'kr',
+          language: story.language || lang,
           genre: story.genre,
           theme: story.theme,
           leftGroup: story.leftGroup,
@@ -69,12 +95,10 @@ export const useStoryManager = (userId?: string) => {
           extraMembers: story.extraMembers || [],
         };
 
-        // 로컬 ID가 유효한 UUID인 경우에만 기존 ID 유지
         if (story.id && uuidRegex.test(story.id)) {
           dbPayload.id = story.id;
         }
 
-        // upsert 호출 후 에러를 반드시 확인합니다.
         const { error } = await supabase.from('stories').upsert([dbPayload], { onConflict: 'id' });
         
         if (error) {
@@ -83,19 +107,25 @@ export const useStoryManager = (userId?: string) => {
         }
       });
 
-      // 모든 통신이 끝날 때까지 대기
       await Promise.all(syncPromises);
       
-      // 통신 중 에러가 하나도 없었을 때만 로컬 스토리지 삭제
+      // 5. 뒷정리
       if (!hasError) {
-        localStorage.removeItem('spk_stories');
-        alert("로그인 전 작성하신 글들이 내 서재로 안전하게 이동되었습니다.");
+        if (localStories.length > availableSlots) {
+           const remainingStories = localStories.slice(availableSlots);
+           localStorage.setItem('spk_stories', JSON.stringify(remainingStories));
+        } else {
+           localStorage.removeItem('spk_stories');
+           alert(lang === 'kr' 
+             ? "로그인 전 작성하신 글들이 내 서재로 안전하게 이동되었습니다."
+             : "Your local stories have been safely moved to your Library.");
+        }
       } else {
-        alert("일부 글을 동기화하는 중에 오류가 발생했습니다. (내 서재에서 확인해주세요)");
+        alert(lang === 'kr' 
+          ? "일부 글을 동기화하는 중에 오류가 발생했습니다."
+          : "An error occurred while syncing some stories.");
       }
       
-      // 목록 갱신
-      fetchStories();
     } catch (error) {
       console.error("Sync Local Stories Error:", error);
     }
@@ -105,7 +135,7 @@ export const useStoryManager = (userId?: string) => {
   useEffect(() => {
     if (userId) {
       // 로그인이 된 경우: 기존 로컬 데이터를 먼저 동기화한 뒤 목록을 불러옴
-      syncLocalStories(userId).then(() => {
+      syncLocalStories(userId, lang).then(() => {
         fetchStories();
       });
     } else {

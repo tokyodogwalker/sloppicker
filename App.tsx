@@ -27,7 +27,7 @@ const App: React.FC = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const { stories, currentStory, setCurrentStory, loading, setLoading, saveToLibrary, deleteFromLibrary, shareStory } = useStoryManager(session?.user?.id);
+  const { stories, currentStory, setCurrentStory, loading, setLoading, saveToLibrary, deleteFromLibrary, shareStory } = useStoryManager(session?.user?.id, language);
   
   const [view, setView] = useState<AppState>(AppState.SETUP);
 
